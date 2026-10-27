@@ -1,0 +1,128 @@
+from flask import Flask, request, redirect, url_for, flash, render_template_string
+import sqlite3
+from pathlib import Path
+
+app = Flask(__name__)
+app.secret_key = "change-this-for-your-project"
+DB_PATH = Path(__file__).with_name("blood_bank.db")
+GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
+COMPONENTS = ["Whole Blood", "Red Blood Cells", "Platelets", "Plasma", "Cryoprecipitate"]
+
+PAGE = """
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Record Blood Donation</title><style>
+body{font-family:Arial,sans-serif;background:#f4f7fb;color:#202938;margin:0}.wrap{max-width:950px;margin:32px auto;padding:0 16px}
+.card{background:white;padding:26px;border-radius:14px;box-shadow:0 4px 18px #182b4a12}h1{color:#8b1e2d;margin-top:0}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}label{display:block;font-weight:600;margin-bottom:7px}
+input,select{width:100%;box-sizing:border-box;padding:11px;border:1px solid #cbd5e1;border-radius:7px;background:white;font-size:15px}
+button{margin-top:18px;padding:12px 18px;background:#8b1e2d;color:white;border:0;border-radius:7px;font-weight:bold;cursor:pointer}
+.message{padding:11px 14px;margin:12px 0;border-radius:7px;background:#fef2f2}.success{background:#ecfdf5}
+table{width:100%;border-collapse:collapse;margin-top:18px;font-size:14px}th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px}th{background:#f8fafc}
+.hint{color:#64748b;font-size:13px;margin-top:5px}@media(max-width:650px){.grid{grid-template-columns:1fr}}
+</style></head><body><div class="wrap"><div class="card">
+<h1>Record Blood Donation</h1><p>Record a donation received by a blood bank.</p>
+{% with messages = get_flashed_messages(with_categories=true) %}{% for category,message in messages %}
+<div class="message {{ 'success' if category == 'success' else '' }}">{{ message }}</div>{% endfor %}{% endwith %}
+<form method="post" action="{{ url_for('record_donation') }}"><div class="grid">
+<div><label for="donation_id">Donation ID</label><input id="donation_id" name="donation_id" required maxlength="40" placeholder="e.g. DON-001"></div>
+<div><label for="donor_id">Donor ID</label><select id="donor_id" name="donor_id" required><option value="">Select donor</option>
+{% for d in donors %}<option value="{{ d['donor_id'] }}">{{ d['donor_id'] }} — {{ d['name'] }} ({{ d['blood_group'] }})</option>{% endfor %}</select></div>
+<div><label for="blood_group">Blood Group</label><select id="blood_group" name="blood_group" required><option value="">Select blood group</option>
+{% for g in groups %}<option value="{{ g }}">{{ g }}</option>{% endfor %}</select></div>
+<div><label for="donation_date">Donation Date</label><input id="donation_date" name="donation_date" type="date" required></div>
+<div><label for="blood_bank_id">Blood Bank</label><select id="blood_bank_id" name="blood_bank_id" required><option value="">Select blood bank</option>
+{% for b in banks %}<option value="{{ b['blood_bank_id'] }}">{{ b['name'] }} — {{ b['location'] }}</option>{% endfor %}</select></div>
+<div><label for="quantity_ml">Quantity (mL)</label><input id="quantity_ml" name="quantity_ml" type="number" min="1" max="1000" step="1" required placeholder="e.g. 450"><div class="hint">Enter a positive quantity in millilitres.</div></div>
+<div><label for="component">Blood Component</label><select id="component" name="component" required><option value="">Select component</option>
+{% for c in components %}<option value="{{ c }}">{{ c }}</option>{% endfor %}</select></div>
+</div><button type="submit">Save Donation</button></form>
+<h2>Recent Donation Records</h2>{% if donations %}<table><thead><tr><th>Donation ID</th><th>Donor ID</th><th>Blood Group</th><th>Date</th><th>Blood Bank</th><th>Quantity</th><th>Component</th></tr></thead><tbody>
+{% for d in donations %}<tr><td>{{ d['donation_id'] }}</td><td>{{ d['donor_id'] }}</td><td>{{ d['blood_group'] }}</td><td>{{ d['donation_date'] }}</td><td>{{ d['bank_name'] }}</td><td>{{ d['quantity_ml'] }} mL</td><td>{{ d['component'] }}</td></tr>{% endfor %}
+</tbody></table>{% else %}<p>No donations recorded yet.</p>{% endif %}
+</div></div></body></html>
+"""
+
+def db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys=ON")
+    return conn
+
+def init_db():
+    with db() as conn:
+        conn.executescript("""
+        CREATE TABLE IF NOT EXISTS donors(
+          donor_id TEXT PRIMARY KEY, name TEXT NOT NULL,
+          blood_group TEXT NOT NULL CHECK(blood_group IN ('A+','A-','B+','B-','AB+','AB-','O+','O-'))
+        );
+        CREATE TABLE IF NOT EXISTS blood_banks(
+          blood_bank_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, location TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS donations(
+          donation_id TEXT PRIMARY KEY, donor_id TEXT NOT NULL,
+          blood_group TEXT NOT NULL CHECK(blood_group IN ('A+','A-','B+','B-','AB+','AB-','O+','O-')),
+          donation_date TEXT NOT NULL, blood_bank_id INTEGER NOT NULL,
+          quantity_ml INTEGER NOT NULL CHECK(quantity_ml > 0 AND quantity_ml <= 1000),
+          component TEXT NOT NULL,
+          FOREIGN KEY(donor_id) REFERENCES donors(donor_id),
+          FOREIGN KEY(blood_bank_id) REFERENCES blood_banks(blood_bank_id)
+        );
+        """)
+        if conn.execute("SELECT COUNT(*) FROM donors").fetchone()[0] == 0:
+            conn.executemany("INSERT INTO donors VALUES(?,?,?)", [
+                ("D-001","Demo Donor One","O+"),("D-002","Demo Donor Two","A+"),("D-003","Demo Donor Three","B-")
+            ])
+        if conn.execute("SELECT COUNT(*) FROM blood_banks").fetchone()[0] == 0:
+            conn.executemany("INSERT INTO blood_banks(name,location) VALUES(?,?)", [
+                ("Central Blood Bank","Bengaluru"),("City Blood Centre","Mysuru")
+            ])
+
+@app.get("/")
+def index():
+    with db() as conn:
+        donors = conn.execute("SELECT * FROM donors ORDER BY donor_id").fetchall()
+        banks = conn.execute("SELECT * FROM blood_banks ORDER BY name").fetchall()
+        donations = conn.execute("""SELECT d.*, b.name AS bank_name FROM donations d
+          JOIN blood_banks b ON b.blood_bank_id=d.blood_bank_id
+          ORDER BY d.donation_date DESC, d.donation_id DESC LIMIT 20""").fetchall()
+    return render_template_string(PAGE, donors=donors, banks=banks, donations=donations,
+                                  groups=GROUPS, components=COMPONENTS)
+
+@app.post("/donations")
+def record_donation():
+    donation_id = request.form.get("donation_id", "").strip()
+    donor_id = request.form.get("donor_id", "").strip()
+    blood_group = request.form.get("blood_group", "").strip()
+    donation_date = request.form.get("donation_date", "").strip()
+    bank_id = request.form.get("blood_bank_id", "").strip()
+    component = request.form.get("component", "").strip()
+    try:
+        quantity = int(request.form.get("quantity_ml", ""))
+    except ValueError:
+        quantity = 0
+    if not all([donation_id, donor_id, blood_group, donation_date, bank_id, component]):
+        flash("Please complete all fields.", "error")
+    elif blood_group not in GROUPS or component not in COMPONENTS:
+        flash("Select a valid blood group and component.", "error")
+    elif quantity < 1 or quantity > 1000:
+        flash("Quantity must be between 1 and 1000 mL.", "error")
+    else:
+        try:
+            with db() as conn:
+                conn.execute("""INSERT INTO donations
+                  (donation_id,donor_id,blood_group,donation_date,blood_bank_id,quantity_ml,component)
+                  VALUES(?,?,?,?,?,?,?)""",
+                  (donation_id, donor_id, blood_group, donation_date, int(bank_id), quantity, component))
+            flash("Donation recorded successfully.", "success")
+        except sqlite3.IntegrityError as exc:
+            if "UNIQUE constraint failed" in str(exc):
+                flash("That Donation ID already exists. Enter a unique ID.", "error")
+            elif "FOREIGN KEY constraint failed" in str(exc):
+                flash("Select a donor and blood bank that exist in the database.", "error")
+            else:
+                flash("Donation could not be saved. Check the entered values.", "error")
+    return redirect(url_for("index"))
+
+if __name__ == "__main__":
+    init_db()
+    app.run(debug=True)
