@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Donor Registration | Central Blood Bank</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+:root{--bg:#eef1f5;--sf:#fff;--sf2:#f6f8fa;--ink:#1c2733;--mu:#566475;--ln:#cbd3dd;--hd:#12345b;--pr:#12345b;--pi:#fff;--red:#a6192e;--ok:#1d6b45;--er:#a6192e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1620;--sf:#18212d;--sf2:#1e2a38;--ink:#e6ebf1;--mu:#9fabba;--ln:#2b3848;--hd:#0b1c30;--pr:#6ea3e0;--pi:#0b1c30;--red:#ff7a8c;--ok:#5fcf97;--er:#ff7a8c;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.45 "Source Sans 3","Segoe UI",Arial,sans-serif}
+.top{background:var(--hd);color:#fff;padding:12px 20px;padding-top:calc(12px + env(safe-area-inset-top,0px));display:flex;align-items:center;gap:14px;border-bottom:4px solid var(--red)}
+.top strong{display:block;font-size:19px;font-weight:700}.top span{font-size:13px;opacity:.85}
+main{max-width:1000px;margin:0 auto;padding:20px 16px 40px;padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
+.ph h1{font-size:22px;margin:0}.ph p{margin:2px 0 16px;color:var(--mu)}
+.panel{background:var(--sf);border:1px solid var(--ln);margin-bottom:20px}
+.panel>h2{margin:0;padding:9px 14px;font-size:15px;background:var(--sf2);border-bottom:1px solid var(--ln)}
+.pb{padding:14px}
+fieldset{border:1px solid var(--ln);margin:0 0 14px;padding:12px 14px 14px}
+legend{font-weight:700;padding:0 6px;color:var(--pr)}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px 16px}
+.full{grid-column:1/-1}
+label{display:block;font-weight:600;font-size:14px;margin-bottom:3px}label i{color:var(--red);font-style:normal}
+input,select{width:100%;padding:8px 10px;font:inherit;color:var(--ink);background:var(--sf);border:1px solid var(--mu);border-radius:2px;height:38px}
+input[aria-invalid=true],select[aria-invalid=true]{border:2px solid var(--er)}
+:focus-visible{outline:3px solid var(--pr);outline-offset:1px}
+.hint{font-size:13px;color:var(--mu);margin-top:3px}
+.er{font-size:13px;font-weight:600;color:var(--er);min-height:0}
+.idr{display:flex;gap:8px}
+.btn{font:inherit;font-weight:600;height:38px;padding:0 18px;border-radius:2px;border:1px solid var(--pr);background:var(--pr);color:var(--pi);cursor:pointer;white-space:nowrap}
+.btn.s{background:var(--sf);color:var(--pr)}
+.lk{font:inherit;font-weight:600;border:0;background:none;color:var(--pr);text-decoration:underline;cursor:pointer;padding:2px 4px}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.msg{font-weight:600}.msg.s{color:var(--ok)}.msg.e{color:var(--er)}
+.hr{display:grid;grid-template-columns:170px 120px 1fr auto;gap:8px;margin-bottom:8px;align-items:start}
+@media(max-width:640px){.hr{grid-template-columns:1fr 1fr}.hr .loc{grid-column:1/-1}}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:640px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--ln);vertical-align:top}
+th{background:var(--sf2);font-size:14px;border-top:1px solid var(--ln)}
+tbody tr:nth-child(even){background:var(--sf2)}
+td.n,th.n{text-align:right}
+.bg{display:inline-block;min-width:40px;text-align:center;font-weight:700;color:var(--red);border:1px solid var(--red);padding:0 6px}
+.em{color:var(--mu);padding:12px 14px}.em:empty{display:none}
+</style>
+</head>
+<body>
+<header class="top"><div><strong>Central Blood Bank</strong><span>Donor and Inventory Management System</span></div></header>
+<main>
+<div class="ph"><h1>Donor registration</h1><p>Register donors so their information can be stored and managed.</p></div>
+
+<form class="panel" id="f" novalidate>
+ <h2 id="ft">New donor</h2>
+ <div class="pb">
+  <fieldset><legend>Identification</legend><div class="g">
+   <div><label for="id">Donor ID <i>*</i></label>
+    <div class="idr"><input id="id" autocomplete="off" aria-describedby="idE"><button type="button" class="btn s" id="gen">Generate</button></div>
+    <div class="hint">A unique ID is created automatically. You may enter your own.</div><div class="er" id="idE"></div></div>
+   <div><label for="nm">Full name <i>*</i></label><input id="nm" autocomplete="off" aria-describedby="nmE"><div class="er" id="nmE"></div></div>
+   <div><label for="bg">Blood group <i>*</i></label>
+    <select id="bg" aria-describedby="bgE"><option value="">Select</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select>
+    <div class="er" id="bgE"></div></div>
+  </div></fieldset>
+
+  <fieldset><legend>Contact information</legend><div class="g">
+   <div><label for="ph">Phone number <i>*</i></label><input id="ph" type="tel" aria-describedby="phE"><div class="er" id="phE"></div></div>
+   <div><label for="em">Email address</label><input id="em" type="email" aria-describedby="emE"><div class="er" id="emE"></div></div>
+   <div class="full"><label for="ad">Address <i>*</i></label><input id="ad" aria-describedby="adE"><div class="er" id="adE"></div></div>
+  </div></fieldset>
+
+  <fieldset><legend>Donation history</legend>
+   <div id="hist"></div>
+   <button type="button" class="btn s" id="addH">Add donation</button>
+   <div class="hint">Leave empty for a first-time donor.</div><div class="er" id="hE"></div>
+  </fieldset>
+
+  <div class="bar"><button class="btn" id="save">Save donor record</button><button type="button" class="btn s" id="cancel" hidden>Cancel edit</button><span class="msg" id="msg" role="status"></span></div>
+ </div>
+</form>
+
+<div class="panel"><h2>Registered donors (<span id="cnt">0</span>)</h2>
+ <div class="pb" style="padding-bottom:0"><label for="q">Search</label><input id="q" type="search" placeholder="Name, donor ID or blood group" style="max-width:320px;margin-bottom:12px"></div>
+ <div class="tw"><table><thead><tr><th>Donor ID</th><th>Name</th><th>Group</th><th>Contact</th><th class="n">Donations</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
+ <div class="em" id="empty"></div>
+</div>
+</main>
+
+<script>
+(function(){
+var KEY='bloodbank.donors.v2',donors=[],editing=null;
+try{var r=localStorage.getItem(KEY);donors=r?JSON.parse(r):[]}catch(e){donors=[]}
+if(!Array.isArray(donors))donors=[];
+var $=function(i){return document.getElementById(i)};
+var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var today=function(){return new Date().toISOString().slice(0,10)};
+var persist=function(){try{localStorage.setItem(KEY,JSON.stringify(donors));return true}catch(e){return false}};
+
+// Creates an ID of the form DNR-YYMMDD-XXXX that is not already in use
+function newId(){
+ var d=new Date(),p=function(n){return String(n).padStart(2,'0')},
+     st=String(d.getFullYear()).slice(2)+p(d.getMonth()+1)+p(d.getDate()),
+     c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',id;
+ do{var s='';for(var i=0;i<4;i++)s+=c[Math.floor(Math.random()*c.length)];id='DNR-'+st+'-'+s}
+ while(donors.some(function(x){return x.id===id}));
+ return id;
+}
+
+function addRow(h){
+ h=h||{date:'',ml:450,loc:''};
+ var r=document.createElement('div');r.className='hr';
+ r.innerHTML='<input type="date" aria-label="Donation date" max="'+today()+'" value="'+esc(h.date)+'">'+
+  '<input type="number" aria-label="Volume in ml" min="50" max="1000" step="10" value="'+esc(h.ml)+'">'+
+  '<input class="loc" aria-label="Location or notes" placeholder="Location or notes" value="'+esc(h.loc)+'">'+
+  '<button type="button" class="lk" aria-label="Remove this donation">Remove</button>';
+ r.querySelector('button').onclick=function(){r.remove()};
+ $('hist').appendChild(r);
+}
+function readRows(){
+ return Array.prototype.map.call($('hist').children,function(r){var i=r.querySelectorAll('input');
+  return{date:i[0].value,ml:Number(i[1].value),loc:i[2].value.trim()}});
+}
+
+function mark(id,fid,msg){$(id).textContent=msg||'';var f=$(fid);if(f)f.setAttribute('aria-invalid',msg?'true':'false');return !msg}
+function validate(){
+ var ok=true,id=$('id').value.trim();
+ ok=mark('idE','id',!id?'Enter a donor ID or select Generate.':!/^[A-Za-z0-9_-]{3,30}$/.test(id)?'Use 3 to 30 letters, numbers, hyphens or underscores.':
+  donors.some(function(d){return d.id.toLowerCase()===id.toLowerCase()&&d.id!==editing})?'This donor ID is already in use.':'')&&ok;
+ ok=mark('nmE','nm',$('nm').value.trim().length<2?'Enter the donor’s full name.':'')&&ok;
+ ok=mark('bgE','bg',!$('bg').value?'Select a blood group.':'')&&ok;
+ var dg=$('ph').value.replace(/\D/g,'');
+ ok=mark('phE','ph',dg.length<7||dg.length>15?'Enter a valid phone number (7 to 15 digits).':'')&&ok;
+ var em=$('em').value.trim();
+ ok=mark('emE','em',em&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)?'Enter a valid email address.':'')&&ok;
+ ok=mark('adE','ad',$('ad').value.trim().length<5?'Enter the donor’s address.':'')&&ok;
+ var bad=readRows().some(function(h){return !h.date||h.date>today()||!(h.ml>=50&&h.ml<=1000)});
+ ok=mark('hE',null,bad?'Each donation needs a date that is not in the future and a volume of 50 to 1000 ml.':'')&&ok;
+ return ok;
+}
+function say(t,good){var m=$('msg');m.textContent=t;m.className='msg '+(good?'s':'e');clearTimeout(say.t);say.t=setTimeout(function(){m.textContent=''},5000)}
+
+function reset(){
+ editing=null;$('f').reset();$('hist').innerHTML='';
+ ['idE','nmE','bgE','phE','emE','adE','hE'].forEach(function(i){$(i).textContent=''});
+ Array.prototype.forEach.call(document.querySelectorAll('[aria-invalid]'),function(e){e.removeAttribute('aria-invalid')});
+ $('id').value=newId();$('ft').textContent='New donor';$('save').textContent='Save donor record';$('cancel').hidden=true;
+}
+
+function render(){
+ var q=$('q').value.trim().toLowerCase();
+ var list=donors.filter(function(d){return !q||(d.id+' '+d.name+' '+d.bloodGroup).toLowerCase().indexOf(q)>-1});
+ $('cnt').textContent=donors.length;
+ $('empty').textContent=list.length?'':(donors.length?'No donors match your search.':'No donors registered. Complete the form above to add the first record.');
+ $('rows').innerHTML=list.map(function(d){
+  return '<tr><td>'+esc(d.id)+'</td><td>'+esc(d.name)+'</td><td><span class="bg">'+esc(d.bloodGroup)+'</span></td>'+
+   '<td>'+esc(d.phone)+(d.email?'<br>'+esc(d.email):'')+'<br>'+esc(d.address)+'</td>'+
+   '<td class="n">'+d.history.length+'</td>'+
+   '<td><button class="lk" data-a="edit" data-id="'+esc(d.id)+'">Edit</button><button class="lk" data-a="del" data-id="'+esc(d.id)+'">Delete</button></td></tr>';
+ }).join('');
+}
+
+$('rows').addEventListener('click',function(e){
+ var b=e.target.closest('button');if(!b)return;
+ var id=b.dataset.id,d=donors.filter(function(x){return x.id===id})[0];if(!d)return;
+ if(b.dataset.a==='del'){
+  if(confirm('Delete the record for '+d.name+' ('+d.id+')? This cannot be undone.')){donors=donors.filter(function(x){return x.id!==id});persist();render()}
+ }else{
+  reset();editing=d.id;
+  $('id').value=d.id;$('nm').value=d.name;$('bg').value=d.bloodGroup;$('ph').value=d.phone;$('em').value=d.email||'';$('ad').value=d.address;
+  d.history.forEach(addRow);
+  $('ft').textContent='Edit donor '+d.id;$('save').textContent='Save changes';$('cancel').hidden=false;
+  $('f').scrollIntoView({behavior:'smooth'});$('nm').focus();
+ }
+});
+
+$('f').addEventListener('submit',function(e){
+ e.preventDefault();
+ if(!validate()){say('Correct the fields marked in red.',false);return}
+ var rec={id:$('id').value.trim(),name:$('nm').value.trim(),bloodGroup:$('bg').value,phone:$('ph').value.trim(),
+  email:$('em').value.trim(),address:$('ad').value.trim(),
+  history:readRows().sort(function(a,b){return a.date<b.date?1:-1}),registeredAt:new Date().toISOString()};
+ var was=!!editing;
+ if(was){var i=donors.findIndex(function(x){return x.id===editing});rec.registeredAt=donors[i].registeredAt;donors[i]=rec}
+ else donors.unshift(rec);
+ var ok=persist();render();reset();
+ say(ok?(was?'Changes saved.':'Donor record saved. ID: '+rec.id):'Saved for this session only. Browser storage is unavailable.',ok);
+});
+
+$('gen').onclick=function(){$('id').value=newId();mark('idE','id','')};
+$('addH').onclick=function(){addRow()};
+$('cancel').onclick=reset;
+$('q').addEventListener('input',render);
+reset();render();
+})();
+</script>
+</body>
+</html>
