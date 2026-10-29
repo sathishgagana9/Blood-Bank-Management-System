@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blood inventory | Blood Bank Management System</title>
+<!--
+  US-14: View Blood Inventory
+  As blood-bank staff, I want to view blood inventory so that I know the available blood stock.
+
+  Acceptance criteria                           Where it is handled
+  1. Staff can view inventory                   Staff sign-in screen, then the inventory page
+  2. Viewable by blood group                    "By blood group" view
+  3. Viewable by blood bank                     "By blood bank" view (a bank x group table)
+  4. Available quantity is displayed accurately Available = units in lots that are not reserved
+                                                and not past their expiry date. Reserved and
+                                                expired units are shown separately, never
+                                                added to Available.
+
+  To check the numbers, open the browser console and run: runInventoryTests()
+  To see the error state, open this file with ?simulateError added to the address.
+-->
+<style>
+  :root {
+    --bg: #eef1f4;
+    --surface: #ffffff;
+    --ink: #17212b;
+    --muted: #55657a;
+    --line: #d3dce4;
+    --line-strong: #9fb0bf;
+    --head-bg: #e8edf1;
+    --brand: #b3203a;
+    --accent: #17406b;
+    --accent-ink: #ffffff;
+    --focus: #1f6fb5;
+    --ok: #17713f;       --ok-bg: #e3f3ea;
+    --warn: #7a5200;     --warn-bg: #fbf0d9;
+    --bad: #a3202f;      --bad-bg: #fbe9eb;
+    --bar: #5b87ad;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f151a; --surface: #18212a; --ink: #e4ebf0; --muted: #9aaab8;
+      --line: #2c3a46; --line-strong: #4a5e6d; --head-bg: #202b35;
+      --brand: #e0556d; --accent: #8fbbdc; --accent-ink: #0c1a24; --focus: #7db7ee;
+      --ok: #6fd49a;   --ok-bg: #16311f;
+      --warn: #f0c15c; --warn-bg: #38300f;
+      --bad: #ff8d98;  --bad-bg: #3a1c20;
+      --bar: #6a9cc4;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  [hidden] { display: none !important; }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .app { max-width: 1120px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
+
+  /* buttons and fields */
+  .btn { font: inherit; font-weight: 600; cursor: pointer; padding: .5rem .9rem; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); }
+  .btn.ghost { background: transparent; color: var(--ink); border-color: var(--line-strong); }
+  .btn:disabled { opacity: .6; cursor: not-allowed; }
+  .link { font: inherit; font-size: .88rem; background: none; border: 0; padding: 0; color: var(--focus); cursor: pointer; text-decoration: underline; }
+  label.field { display: block; font-weight: 600; font-size: .85rem; }
+  .field select, .field input {
+    display: block; width: 100%; margin-top: .3rem; padding: .5rem .6rem; font: inherit; font-weight: 400;
+    color: var(--ink); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 6px;
+  }
+
+  /* sign-in */
+  .login-wrap { min-height: 100vh; display: grid; place-items: center; padding: 1rem; }
+  .login { width: 100%; max-width: 380px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 2rem; }
+  .brand { display: flex; align-items: center; gap: .6rem; font-weight: 700; margin-bottom: 1.25rem; }
+  .brand svg { width: 28px; height: 28px; }
+  .login h1 { margin: 0 0 .25rem; font-size: 1.4rem; }
+  .login .sub { margin: 0 0 1.25rem; color: var(--muted); }
+  .login .field { margin-bottom: 1rem; }
+  .login .btn { width: 100%; padding: .7rem; }
+  .hint { margin: 1.1rem 0 0; font-size: .8rem; color: var(--muted); }
+  input[aria-invalid="true"] { border-color: var(--bad); border-width: 2px; }
+
+  .msg { display: none; padding: .65rem .85rem; border-radius: 6px; border: 1px solid var(--bad); background: var(--bad-bg); color: var(--bad); margin-bottom: 1rem; font-size: .92rem; }
+  .msg.show { display: flex; gap: .75rem; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+
+  /* header and controls */
+  .top { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: flex-end; margin-bottom: 1rem; }
+  h1.page { margin: 0; font-size: 1.6rem; letter-spacing: -.01em; }
+  .sub { color: var(--muted); margin: .15rem 0 0; font-size: .9rem; }
+  .actions { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+  .actions .who { color: var(--muted); font-size: .9rem; margin-right: .25rem; }
+  .controls { display: flex; flex-wrap: wrap; gap: .75rem 1rem; align-items: flex-end; margin-bottom: 1rem; }
+  .controls .field { min-width: 180px; }
+  .seg { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 6px; overflow: hidden; }
+  .seg button { font: inherit; font-weight: 600; padding: .5rem 1rem; border: 0; background: var(--surface); color: var(--ink); cursor: pointer; }
+  .seg button + button { border-left: 1px solid var(--line-strong); }
+  .seg button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+
+  /* summary cards */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: .75rem; margin-bottom: 1.25rem; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: .85rem 1rem; }
+  .card .k { font-size: .85rem; color: var(--muted); font-weight: 600; }
+  .card .v { font-size: 1.9rem; font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
+  .card .n { font-size: .8rem; color: var(--muted); }
+
+  /* tables */
+  .table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+  table { border-collapse: collapse; width: 100%; min-width: 640px; }
+  th, td { padding: .6rem .75rem; text-align: left; border-bottom: 1px solid var(--line); font-size: .92rem; vertical-align: middle; }
+  th { background: var(--head-bg); color: var(--muted); font-size: .8rem; font-weight: 600; }
+  tfoot td { font-weight: 700; background: var(--head-bg); border-bottom: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  th.num { text-align: right; }
+  .grp { font-weight: 700; font-size: 1rem; }
+  .avail { font-weight: 700; }
+  .bar { height: 5px; margin-top: .3rem; background: var(--head-bg); border-radius: 3px; overflow: hidden; min-width: 70px; }
+  .bar i { display: block; height: 100%; background: var(--bar); }
+  .lvl { display: inline-block; padding: .05rem .5rem; border-radius: 99px; font-size: .78rem; font-weight: 600; border: 1px solid; white-space: nowrap; }
+  .lvl.ok { color: var(--ok); background: var(--ok-bg); border-color: var(--ok); }
+  .lvl.low { color: var(--warn); background: var(--warn-bg); border-color: var(--warn); }
+  .lvl.critical, .lvl.out { color: var(--bad); background: var(--bad-bg); border-color: var(--bad); }
+  .cell-tag { display: block; font-size: .72rem; font-weight: 600; }
+  .cell-tag.low { color: var(--warn); } .cell-tag.critical, .cell-tag.out { color: var(--bad); }
+  tr.sub td { background: var(--head-bg); padding: .5rem .75rem .9rem 2rem; }
+  table.inner { min-width: 0; width: auto; background: var(--surface); border: 1px solid var(--line); }
+  table.inner th, table.inner td { padding: .35rem .8rem; font-size: .85rem; }
+  .empty { padding: 2rem; text-align: center; color: var(--muted); }
+  .note { margin-top: .75rem; font-size: .82rem; color: var(--muted); }
+  .loading { padding: 2.5rem; text-align: center; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<!-- Staff sign-in -->
+<div class="login-wrap" id="login-screen">
+  <main class="login">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="var(--brand)" d="M12 2C12 2 5 10 5 15a7 7 0 0 0 14 0c0-5-7-13-7-13z"/></svg>
+      <span>Blood Bank Management System</span>
+    </div>
+    <h1>Staff sign in</h1>
+    <p class="sub">Sign in to view blood inventory.</p>
+    <div id="login-msg" class="msg" role="alert"></div>
+    <form id="login-form" novalidate>
+      <label class="field">Email
+        <input id="email" type="email" autocomplete="username">
+      </label>
+      <label class="field">Password
+        <input id="password" type="password" autocomplete="current-password">
+      </label>
+      <button class="btn" type="submit" id="login-btn">Sign in</button>
+    </form>
+    <p class="hint">Demo account: <code>staff@bloodbank.test</code> / <code>Staff@123</code></p>
+  </main>
+</div>
+
+<!-- Inventory -->
+<div class="app" id="app" hidden>
+  <header class="top">
+    <div>
+      <h1 class="page">Blood inventory</h1>
+      <p class="sub" id="updated">Not loaded yet</p>
+    </div>
+    <div class="actions">
+      <span class="who" id="who"></span>
+      <button class="btn ghost" id="btn-refresh" type="button">Refresh</button>
+      <button class="btn ghost" id="btn-signout" type="button">Sign out</button>
+    </div>
+  </header>
+
+  <div id="load-error" class="msg" role="alert">
+    <span id="load-error-text"></span>
+    <button class="btn ghost" id="btn-retry" type="button">Try again</button>
+  </div>
+
+  <div class="controls">
+    <div class="seg" role="tablist" aria-label="Inventory view">
+      <button role="tab" id="tab-group" data-view="group" aria-selected="true" aria-controls="view">By blood group</button>
+      <button role="tab" id="tab-bank" data-view="bank" aria-selected="false" aria-controls="view">By blood bank</button>
+    </div>
+    <label class="field">Blood bank
+      <select id="f-bank"><option value="">All blood banks</option></select>
+    </label>
+    <label class="field">Blood group
+      <select id="f-group"><option value="">All blood groups</option></select>
+    </label>
+  </div>
+
+  <div class="cards" id="cards"></div>
+  <div id="view" role="tabpanel" aria-labelledby="tab-group"></div>
+  <p class="note" id="rules"></p>
+</div>
+
+<script>
+/* ==================================================================
+   Configuration
+================================================================== */
+const GROUPS = ["O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-"];
+const DAY = 864e5;
+const SOON_DAYS = 3;          // available units expiring within this many days are flagged
+const LOW_PER_BANK = 10;      // below this many available units per bank = Low
+const CRITICAL_PER_BANK = 5;  // below this many per bank = Critical
+
+/* ==================================================================
+   Data layer
+   fetchInventory() returns demo data. Replace it with a real call, for example:
+
+     const res = await fetch("/api/inventory");
+     if (!res.ok) throw new Error("Server error " + res.status);
+     return res.json();   // { banks: [{id, name}], lots: [{id, bankId, group, units, expiresAt, status}], fetchedAt }
+
+   Each lot is a batch of units with one blood group at one blood bank.
+   status is "available" or "reserved". A lot past its expiresAt counts as
+   expired whatever its status says.
+================================================================== */
+const BANKS = [
+  { id: "B1", name: "Central Blood Bank" },
+  { id: "B2", name: "Riverside Blood Bank" },
+  { id: "B3", name: "Northgate Blood Bank" }
+];
+
+// [available, reserved, expired] units per bank and blood group (demo data)
+const SEED = {
+  B1: { "O+": [32, 4, 2], "O-": [9, 2, 0], "A+": [26, 3, 1], "A-": [7, 0, 1], "B+": [21, 2, 0], "B-": [4, 1, 0], "AB+": [11, 0, 2], "AB-": [3, 0, 0] },
+  B2: { "O+": [18, 2, 0], "O-": [6, 1, 1],  "A+": [15, 0, 0], "A-": [0, 0, 2], "B+": [12, 3, 0], "B-": [5, 0, 0], "AB+": [6, 1, 0],  "AB-": [2, 0, 1] },
+  B3: { "O+": [24, 5, 3], "O-": [12, 0, 0], "A+": [19, 2, 0], "A-": [8, 1, 0], "B+": [9, 0, 1],  "B-": [3, 0, 0], "AB+": [4, 0, 0],  "AB-": [1, 0, 0] }
+};
+
+function buildLots() {
+  const now = Date.now(), lots = [];
+  let n = 0;
+  BANKS.forEach((b, bi) => GROUPS.forEach((g, gi) => {
+    const [a, r, e] = SEED[b.id][g];
+    const add = (units, days, status) => {
+      if (units > 0) lots.push({ id: "LOT-" + String(++n).padStart(4, "0"), bankId: b.id, group: g, units, expiresAt: new Date(now + days * DAY).toISOString(), status });
+    };
+    const first = Math.ceil(a * 0.6);
+    add(first, 20, "available");
+    add(a - first, (bi + gi) % 3 === 0 ? 2 : 9, "available");   // some lots expire soon
+    add(r, 15, "reserved");
+    add(e, -2, "expired");
+  }));
+  return lots;
+}
+
+function fetchInventory() {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (new URLSearchParams(location.search).has("simulateError")) reject(new Error("Server unavailable"));
+      else resolve({ banks: BANKS, lots: buildLots(), fetchedAt: new Date().toISOString() });
+    }, 500);
+  });
+}
+
+/* ==================================================================
+   Quantity rules (criterion 4)
+================================================================== */
+// A lot is expired once its expiry time passes, whatever its stored status.
+// A lot with a missing or invalid expiry date is also treated as expired, so it is never counted as available by mistake.
+function lotState(lot) {
+  const exp = new Date(lot.expiresAt).getTime();
+  if (isNaN(exp) || exp <= Date.now()) return "expired";
+  return lot.status === "reserved" ? "reserved" : "available";
+}
+
+// Adds up whole units. Available never includes reserved or expired units.
+function tally(lots) {
+  const t = { available: 0, reserved: 0, expired: 0, soon: 0 };
+  for (const lot of lots) {
+    const units = Math.max(0, Math.floor(Number(lot.units) || 0));
+    const s = lotState(lot);
+    t[s] += units;
+    if (s === "available" && new Date(lot.expiresAt).getTime() - Date.now() <= SOON_DAYS * DAY) t.soon += units;
+  }
+  return t;
+}
+
+function level(available, bankCount) {
+  if (available === 0) return "out";
+  if (available < CRITICAL_PER_BANK * bankCount) return "critical";
+  if (available < LOW_PER_BANK * bankCount) return "low";
+  return "ok";
+}
+const LEVEL_LABEL = { out: "Out of stock", critical: "Critical", low: "Low", ok: "Adequate" };
+
+/* ==================================================================
+   Helpers and state
+================================================================== */
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]));
+const n0 = n => Number(n).toLocaleString();
+
+let data = null;
+let view = "group";
+const expanded = new Set();
+
+function scope() {
+  const bank = $("f-bank").value, group = $("f-group").value;
+  return {
+    bank, group,
+    banks: data.banks.filter(b => !bank || b.id === bank),
+    groups: group ? [group] : GROUPS,
+    lots: data.lots.filter(l => (!bank || l.bankId === bank) && (!group || l.group === group))
+  };
+}
+
+/* ==================================================================
+   Rendering
+================================================================== */
+function render() {
+  if (!data) return;
+  const sc = scope();
+  renderCards(sc);
+  $("view").innerHTML = view === "group" ? groupView(sc) : bankView(sc);
+  $("view").setAttribute("aria-labelledby", "tab-" + view);
+  $("rules").textContent =
+    "Available counts units that are not reserved and not past their expiry date. " +
+    "Stock levels: Low is under " + LOW_PER_BANK + " available units per blood bank, Critical is under " + CRITICAL_PER_BANK + ".";
+}
+
+function renderCards(sc) {
+  const t = tally(sc.lots);
+  const levels = sc.groups.map(g => level(tally(sc.lots.filter(l => l.group === g)).available, sc.banks.length));
+  const short = levels.filter(l => l !== "ok").length;
+  $("cards").innerHTML =
+    card("Available units", n0(t.available), "Ready to issue") +
+    card("Reserved units", n0(t.reserved), "Held for requests") +
+    card("Expired units", n0(t.expired), t.expired ? "Remove from stock" : "None to remove") +
+    card("Expiring within " + SOON_DAYS + " days", n0(t.soon), "Available units, use first") +
+    card("Blood groups short on stock", short + " of " + sc.groups.length, "Low, critical or out of stock");
+}
+const card = (k, v, n) => '<div class="card"><div class="k">' + esc(k) + '</div><div class="v">' + esc(v) + '</div><div class="n">' + esc(n) + "</div></div>";
+
+function groupView(sc) {
+  const rows = sc.groups.map(g => {
+    const t = tally(sc.lots.filter(l => l.group === g));
+    return { g, t, lvl: level(t.available, sc.banks.length) };
+  });
+  const max = Math.max(1, ...rows.map(r => r.t.available));
+  const total = tally(sc.lots);
+
+  const body = rows.map(r => {
+    const open = expanded.has(r.g);
+    let html =
+      "<tr>" +
+      '<td class="grp">' + esc(r.g) + "</td>" +
+      '<td class="num avail">' + n0(r.t.available) + '<div class="bar"><i style="width:' + (r.t.available / max * 100) + '%"></i></div></td>' +
+      '<td class="num">' + n0(r.t.reserved) + "</td>" +
+      '<td class="num">' + n0(r.t.expired) + "</td>" +
+      '<td class="num">' + n0(r.t.available + r.t.reserved + r.t.expired) + "</td>" +
+      '<td><span class="lvl ' + r.lvl + '">' + LEVEL_LABEL[r.lvl] + "</span></td>" +
+      '<td><button class="link" data-g="' + esc(r.g) + '" aria-expanded="' + open + '">' + (open ? "Hide" : "Show") + " blood banks</button></td>" +
+      "</tr>";
+    if (open) {
+      html += '<tr class="sub"><td colspan="7"><table class="inner"><thead><tr><th>Blood bank</th><th class="num">Available</th><th class="num">Reserved</th><th class="num">Expired</th></tr></thead><tbody>' +
+        sc.banks.map(b => {
+          const bt = tally(sc.lots.filter(l => l.group === r.g && l.bankId === b.id));
+          return "<tr><td>" + esc(b.name) + '</td><td class="num avail">' + n0(bt.available) + '</td><td class="num">' + n0(bt.reserved) + '</td><td class="num">' + n0(bt.expired) + "</td></tr>";
+        }).join("") + "</tbody></table></td></tr>";
+    }
+    return html;
+  }).join("");
+
+  return '<div class="table-wrap"><table><thead><tr>' +
+    '<th>Blood group</th><th class="num">Available</th><th class="num">Reserved</th><th class="num">Expired</th><th class="num">Total on record</th><th>Stock level</th><th></th>' +
+    "</tr></thead><tbody>" + body + "</tbody><tfoot><tr><td>All shown</td>" +
+    '<td class="num">' + n0(total.available) + '</td><td class="num">' + n0(total.reserved) + '</td><td class="num">' + n0(total.expired) + '</td><td class="num">' + n0(total.available + total.reserved + total.expired) + "</td><td></td><td></td></tr></tfoot></table></div>";
+}
+
+function bankView(sc) {
+  if (!sc.banks.length) return '<div class="table-wrap"><div class="empty">No blood banks to show.</div></div>';
+  const head = sc.groups.map(g => '<th class="num">' + esc(g) + "</th>").join("");
+
+  const body = sc.banks.map(b => {
+    const bankLots = sc.lots.filter(l => l.bankId === b.id);
+    const cells = sc.groups.map(g => {
+      const a = tally(bankLots.filter(l => l.group === g)).available;
+      const lv = level(a, 1);
+      return '<td class="num avail">' + n0(a) + (lv === "ok" ? "" : '<span class="cell-tag ' + lv + '">' + LEVEL_LABEL[lv] + "</span>") + "</td>";
+    }).join("");
+    const t = tally(bankLots);
+    return "<tr><td><strong>" + esc(b.name) + "</strong></td>" + cells +
+      '<td class="num avail">' + n0(t.available) + '</td><td class="num">' + n0(t.reserved) + '</td><td class="num">' + n0(t.expired) + "</td></tr>";
+  }).join("");
+
+  const foot = sc.groups.map(g => '<td class="num">' + n0(tally(sc.lots.filter(l => l.group === g)).available) + "</td>").join("");
+  const all = tally(sc.lots);
+
+  return '<div class="table-wrap"><table><thead><tr><th>Blood bank</th>' + head +
+    '<th class="num">Available</th><th class="num">Reserved</th><th class="num">Expired</th></tr></thead><tbody>' + body +
+    "</tbody><tfoot><tr><td>All shown</td>" + foot + '<td class="num">' + n0(all.available) + '</td><td class="num">' + n0(all.reserved) + '</td><td class="num">' + n0(all.expired) + "</td></tr></tfoot></table></div>" +
+    '<p class="note">Columns for each blood group show available units only.</p>';
+}
+
+/* ==================================================================
+   Loading and errors (a failed load shows a message and a retry button, never a blank page)
+================================================================== */
+async function loadInventory() {
+  const btn = $("btn-refresh");
+  btn.disabled = true;
+  if (!data) $("view").innerHTML = '<div class="table-wrap"><div class="loading">Loading inventory\u2026</div></div>';
+  try {
+    data = await fetchInventory();
+    if (!data || !Array.isArray(data.banks) || !Array.isArray(data.lots)) throw new Error("Unexpected data format");
+    $("load-error").classList.remove("show");
+    fillFilters();
+    $("updated").textContent = "Last updated " + new Date(data.fetchedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    render();
+  } catch (err) {
+    console.error("Inventory load failed:", err);
+    $("load-error-text").textContent = data
+      ? "Could not refresh inventory. The figures below may be out of date."
+      : "Could not load inventory. Check your connection and try again.";
+    $("load-error").classList.add("show");
+    if (!data) $("view").innerHTML = "";
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function fillFilters() {
+  const bank = $("f-bank").value, group = $("f-group").value;
+  $("f-bank").innerHTML = '<option value="">All blood banks</option>' + data.banks.map(b => '<option value="' + esc(b.id) + '">' + esc(b.name) + "</option>").join("");
+  $("f-group").innerHTML = '<option value="">All blood groups</option>' + GROUPS.map(g => '<option value="' + esc(g) + '">' + esc(g) + "</option>").join("");
+  if (data.banks.some(b => b.id === bank)) $("f-bank").value = bank;
+  if (GROUPS.includes(group)) $("f-group").value = group;
+}
+
+/* ==================================================================
+   Events
+================================================================== */
+document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
+  view = b.dataset.view;
+  document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-selected", x === b));
+  render();
+}));
+$("f-bank").addEventListener("change", render);
+$("f-group").addEventListener("change", render);
+$("view").addEventListener("click", e => {
+  const btn = e.target.closest("button[data-g]");
+  if (!btn) return;
+  const g = btn.dataset.g;
+  expanded.has(g) ? expanded.delete(g) : expanded.add(g);
+  render();
+  const again = document.querySelector('button[data-g="' + CSS.escape(g) + '"]');
+  if (again) again.focus();
+});
+$("btn-refresh").addEventListener("click", loadInventory);
+$("btn-retry").addEventListener("click", loadInventory);
+setInterval(() => { if (data && !$("app").hidden) render(); }, 60000);   // re-check expiry times
+
+/* ==================================================================
+   Staff sign-in
+================================================================== */
+class AuthError extends Error { constructor(m) { super(m); this.name = "AuthError"; } }
+const STAFF = [{ email: "staff@bloodbank.test", password: "Staff@123", name: "Staff" }];   // demo only
+
+function authenticate(email, password) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const user = STAFF.find(u => u.email === String(email || "").trim().toLowerCase() && u.password === String(password || ""));
+      user ? resolve(user) : reject(new AuthError("Incorrect email or password. Check your details and try again."));
+    }, 300);
+  });
+}
+
+function loginMessage(text) {
+  const el = $("login-msg");
+  el.textContent = text || "";
+  el.classList.toggle("show", !!text);
+}
+
+$("login-form").addEventListener("submit", async e => {
+  e.preventDefault();
+  loginMessage("");
+  $("email").removeAttribute("aria-invalid");
+  $("password").removeAttribute("aria-invalid");
+  const email = $("email").value.trim(), password = $("password").value;
+  if (!email || !password) { loginMessage("Enter both your email and password."); return; }
+  $("login-btn").disabled = true;
+  try {
+    const user = await authenticate(email, password);
+    $("login-screen").hidden = true;
+    $("app").hidden = false;
+    $("who").textContent = "Signed in as " + user.name;
+    $("password").value = "";
+    loadInventory();
+  } catch (err) {
+    if (err instanceof AuthError) {
+      loginMessage(err.message);
+      $("email").setAttribute("aria-invalid", "true");
+      $("password").setAttribute("aria-invalid", "true");
+      $("password").value = "";
+      $("password").focus();
+    } else {
+      console.error(err);
+      loginMessage("Something went wrong on our side. Try again in a moment.");
+    }
+  } finally {
+    $("login-btn").disabled = false;
+  }
+});
+
+$("btn-signout").addEventListener("click", () => {
+  data = null;
+  expanded.clear();
+  $("app").hidden = true;
+  $("login-screen").hidden = false;
+  $("f-bank").value = ""; $("f-group").value = "";
+  $("email").focus();
+});
+
+/* ==================================================================
+   Self-check for the quantities. Run runInventoryTests() in the console
+   after signing in (it also works before, using its own copy of the data).
+================================================================== */
+async function runInventoryTests() {
+  const d = data || await fetchInventory();
+  let failed = 0;
+  const check = (name, ok, extra) => { if (!ok) failed++; console.log((ok ? "PASS  " : "FAIL  ") + name + (ok ? "" : "  " + (extra || ""))); };
+
+  // 1. Every bank and group cell matches the seeded available count.
+  let cellsOk = true, bad = "";
+  for (const b of d.banks) for (const g of GROUPS) {
+    const got = tally(d.lots.filter(l => l.bankId === b.id && l.group === g)).available;
+    if (got !== SEED[b.id][g][0]) { cellsOk = false; bad = b.id + " " + g + ": got " + got + ", expected " + SEED[b.id][g][0]; }
+  }
+  check("Each bank and blood group shows the right available quantity", cellsOk, bad);
+
+  // 2. Reserved and expired units are never counted as available.
+  const t = tally(d.lots);
+  let a = 0, r = 0, e = 0;
+  Object.values(SEED).forEach(bk => Object.values(bk).forEach(([x, y, z]) => { a += x; r += y; e += z; }));
+  check("Available total excludes reserved and expired units", t.available === a, "got " + t.available + ", expected " + a);
+  check("Reserved total is correct", t.reserved === r, "got " + t.reserved + ", expected " + r);
+  check("Expired total is correct", t.expired === e, "got " + t.expired + ", expected " + e);
+
+  // 3. The by-group totals and the by-bank totals reconcile with the grand total.
+  const byGroup = GROUPS.reduce((s, g) => s + tally(d.lots.filter(l => l.group === g)).available, 0);
+  const byBank = d.banks.reduce((s, b) => s + tally(d.lots.filter(l => l.bankId === b.id)).available, 0);
+  check("By-group total equals by-bank total equals grand total", byGroup === byBank && byBank === t.available, byGroup + " / " + byBank + " / " + t.available);
+
+  // 4. Bad data does not crash the calculation.
+  const odd = tally([{ units: -3, status: "available", expiresAt: new Date(Date.now() + DAY).toISOString() }, { units: "x", status: "available", expiresAt: "not a date" }, { units: 2.9, status: "available", expiresAt: new Date(Date.now() + DAY).toISOString() }]);
+  check("Negative, non-numeric and fractional units are handled", odd.available === 2, "got " + odd.available);
+
+  console.log(failed ? failed + " check(s) failed." : "All checks passed.");
+  return failed === 0;
+}
+</script>
+</body>
+</html>
