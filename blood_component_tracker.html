@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blood component separation tracker</title>
+<style>
+  :root {
+    --bg: #edf1f3;
+    --surface: #ffffff;
+    --ink: #16212b;
+    --muted: #566774;
+    --line: #d3dce2;
+    --line-strong: #9fb0bb;
+    --accent: #1d3b53;
+    --accent-ink: #ffffff;
+    --focus: #1f6fb5;
+    --danger: #a3202f;
+    --ok: #17713f;
+    --warn: #7a5200;
+    --ok-bg: #e3f3ea;
+    --err-bg: #fbe9eb;
+    --info-bg: #e4eef6;
+    --mute-bg: #e8ecef;
+    --warn-bg: #fbf0d9;
+    --c-wb: #6b1020;
+    --c-rbc: #c0283d;
+    --c-plasma: #e0a82e;
+    --c-plt: #f0e08a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f151a;
+      --surface: #18212a;
+      --ink: #e4ebf0;
+      --muted: #98a8b4;
+      --line: #2c3a46;
+      --line-strong: #4a5e6d;
+      --accent: #8fbbdc;
+      --accent-ink: #0c1a24;
+      --focus: #7db7ee;
+      --danger: #ff8d98;
+      --ok: #6fd49a;
+      --warn: #f0c15c;
+      --ok-bg: #16311f;
+      --err-bg: #3a1c20;
+      --info-bg: #1b2d3d;
+      --mute-bg: #232e38;
+      --warn-bg: #38300f;
+      --c-wb: #b0405a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  .app { max-width: 1180px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
+
+  /* header */
+  .top { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: flex-end; margin-bottom: 1rem; }
+  h1 { font-size: 1.6rem; margin: 0; letter-spacing: -0.01em; }
+  .sub { margin: .15rem 0 0; color: var(--muted); }
+  .actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+
+  /* buttons */
+  .btn {
+    font: inherit; font-weight: 600; cursor: pointer;
+    padding: .55rem .95rem; border-radius: 6px; border: 1px solid var(--accent);
+    background: var(--accent); color: var(--accent-ink);
+  }
+  .btn.ghost { background: transparent; color: var(--ink); border-color: var(--line-strong); }
+  .btn.danger { color: var(--danger); border-color: var(--danger); }
+  .btn.small { padding: .25rem .6rem; font-size: .85rem; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .link { font: inherit; background: none; border: 0; padding: 0; color: var(--focus); cursor: pointer; text-decoration: underline; }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+  /* banners */
+  .status { display: none; padding: .65rem .9rem; border-radius: 6px; margin-bottom: 1rem; border: 1px solid; }
+  .status.show { display: block; }
+  .status.ok { background: var(--ok-bg); color: var(--ok); border-color: var(--ok); }
+  .status.err { background: var(--err-bg); color: var(--danger); border-color: var(--danger); }
+  .note-bar { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn); border-radius: 6px; padding: .6rem .9rem; margin-bottom: 1rem; display: none; }
+
+  /* tabs */
+  .tabs { display: flex; gap: .25rem; border-bottom: 1px solid var(--line-strong); margin-bottom: 1.25rem; overflow-x: auto; }
+  .tab {
+    font: inherit; font-weight: 600; background: none; border: 0; cursor: pointer;
+    padding: .65rem 1rem; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--c-rbc); }
+  [hidden] { display: none !important; }
+
+  /* summary cards */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: .75rem; margin-bottom: 1.25rem; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: .9rem 1rem; }
+  .card h3 { margin: 0 0 .25rem; font-size: .95rem; display: flex; align-items: center; gap: .5rem; }
+  .card .big { font-size: 2rem; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .card .small { color: var(--muted); font-size: .85rem; }
+  .card .flag { color: var(--warn); font-weight: 600; font-size: .85rem; margin-top: .25rem; }
+  .card .flag.bad { color: var(--danger); }
+  .dot { display: inline-block; width: .8rem; height: .8rem; border-radius: 50%; border: 1px solid var(--line-strong); flex: none; }
+  .dot.WB { background: var(--c-wb); } .dot.RBC { background: var(--c-rbc); }
+  .dot.PLASMA { background: var(--c-plasma); } .dot.PLT { background: var(--c-plt); }
+
+  /* panels, forms */
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 1.1rem 1.2rem; }
+  .panel h2 { margin: 0 0 .25rem; font-size: 1.15rem; }
+  .panel > .hint { margin: 0 0 1rem; color: var(--muted); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: .85rem 1rem; }
+  label.field { display: block; font-weight: 600; font-size: .88rem; }
+  .field input, .field select {
+    display: block; width: 100%; margin-top: .3rem; font: inherit; font-weight: 400;
+    padding: .5rem .6rem; border: 1px solid var(--line-strong); border-radius: 6px;
+    background: var(--surface); color: var(--ink);
+  }
+  .form-error { color: var(--danger); background: var(--err-bg); border: 1px solid var(--danger); border-radius: 6px; padding: .55rem .8rem; margin-top: 1rem; display: none; }
+  .form-error.show { display: block; }
+  .form-actions { margin-top: 1.1rem; display: flex; gap: .6rem; }
+
+  /* filters + table */
+  .filters { display: flex; flex-wrap: wrap; gap: .75rem; margin-bottom: .75rem; align-items: flex-end; }
+  .filters .field { min-width: 150px; }
+  .table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+  table { border-collapse: collapse; width: 100%; min-width: 860px; }
+  th, td { text-align: left; padding: .6rem .75rem; border-bottom: 1px solid var(--line); vertical-align: top; font-size: .9rem; }
+  th { font-size: .8rem; color: var(--muted); font-weight: 600; background: var(--mute-bg); position: sticky; top: 0; }
+  tr:last-child td { border-bottom: 0; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .85rem; }
+  .chip { display: inline-flex; align-items: center; gap: .4rem; white-space: nowrap; }
+  .sm { color: var(--muted); font-size: .8rem; display: block; }
+  .badge { display: inline-block; padding: .1rem .55rem; border-radius: 99px; font-size: .8rem; font-weight: 600; border: 1px solid; white-space: nowrap; }
+  .badge.available { background: var(--ok-bg); color: var(--ok); border-color: var(--ok); }
+  .badge.separated { background: var(--info-bg); color: var(--focus); border-color: var(--focus); }
+  .badge.issued { background: var(--info-bg); color: var(--ink); border-color: var(--line-strong); }
+  .badge.discarded { background: var(--mute-bg); color: var(--muted); border-color: var(--line-strong); }
+  .badge.expired { background: var(--err-bg); color: var(--danger); border-color: var(--danger); }
+  .row-actions { display: flex; gap: .35rem; flex-wrap: wrap; }
+  .empty { padding: 1.5rem; text-align: center; color: var(--muted); }
+
+  /* separation layout */
+  .sep-layout { display: grid; grid-template-columns: 1fr 260px; gap: 1.25rem; }
+  @media (max-width: 800px) { .sep-layout { grid-template-columns: 1fr; } }
+  .comp-row { border: 1px solid var(--line); border-radius: 8px; padding: .75rem .9rem; margin-top: .75rem; }
+  .comp-row .head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem; align-items: center; }
+  .comp-row label.check { display: inline-flex; align-items: center; gap: .5rem; font-weight: 600; }
+  .comp-row .vol { display: inline-flex; align-items: center; gap: .4rem; }
+  .comp-row .vol input { width: 6rem; font: inherit; padding: .4rem .5rem; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--surface); color: var(--ink); }
+  .comp-row.off { opacity: .6; }
+  .comp-row .meta { margin: .35rem 0 0; color: var(--muted); font-size: .83rem; }
+  .time-note { margin-top: .6rem; padding: .5rem .75rem; border-radius: 6px; background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn); display: none; }
+  .time-note.show { display: block; }
+  .tube-panel { display: flex; flex-direction: column; align-items: center; gap: .75rem; }
+  .tube {
+    width: 84px; height: 250px; display: flex; flex-direction: column;
+    border: 2px solid var(--line-strong); border-top-width: 4px; border-radius: 6px 6px 42px 42px; overflow: hidden; background: var(--surface);
+  }
+  .tube .layer { width: 100%; min-height: 0; transition: height .25s ease; }
+  .tube .un { flex: 1; background: repeating-linear-gradient(45deg, transparent 0 6px, var(--line) 6px 7px); }
+  .tube .l-PLASMA { background: var(--c-plasma); }
+  .tube .l-PLT { background: var(--c-plt); border-top: 1px solid var(--line-strong); border-bottom: 1px solid var(--line-strong); }
+  .tube .l-RBC { background: var(--c-rbc); }
+  .legend { list-style: none; margin: 0; padding: 0; width: 100%; font-size: .88rem; }
+  .legend li { display: flex; align-items: center; gap: .5rem; padding: .2rem 0; }
+  .legend .v { margin-left: auto; font-variant-numeric: tabular-nums; }
+  .total-line { font-size: .88rem; width: 100%; padding-top: .5rem; border-top: 1px solid var(--line); }
+  .total-line.over { color: var(--danger); font-weight: 600; }
+
+  /* dialog */
+  dialog { border: 1px solid var(--line-strong); border-radius: 10px; padding: 1.25rem; width: min(420px, 92vw); background: var(--surface); color: var(--ink); }
+  dialog::backdrop { background: rgba(0,0,0,.45); }
+  dialog h2 { margin: 0 0 .75rem; font-size: 1.1rem; }
+  dialog .field + .field { margin-top: .75rem; }
+  .dlg-actions { display: flex; justify-content: flex-end; gap: .5rem; margin-top: 1rem; }
+
+  @media (prefers-reduced-motion: reduce) { .tube .layer { transition: none; } }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <div>
+      <h1>Blood component separation tracker</h1>
+      <p class="sub">Whole blood to red cells, plasma and platelets, with traceability for every unit.</p>
+    </div>
+    <div class="actions">
+      <button class="btn ghost" id="btn-export" type="button">Export CSV</button>
+      <button class="btn ghost" id="btn-demo" type="button">Load demo data</button>
+      <button class="btn ghost danger" id="btn-reset" type="button">Clear all data</button>
+    </div>
+  </header>
+
+  <div id="storage-note" class="note-bar" role="note">
+    Browser storage is unavailable, so records will be lost when you close this page. Use Export CSV to keep a copy.
+  </div>
+  <div id="status" class="status" role="status" aria-live="polite"></div>
+
+  <div class="tabs" role="tablist" aria-label="Sections" id="tablist">
+    <button class="tab" role="tab" id="tab-inventory" aria-controls="panel-inventory" data-tab="inventory">Inventory</button>
+    <button class="tab" role="tab" id="tab-register" aria-controls="panel-register" data-tab="register">Register whole blood</button>
+    <button class="tab" role="tab" id="tab-separate" aria-controls="panel-separate" data-tab="separate">Separate components</button>
+    <button class="tab" role="tab" id="tab-log" aria-controls="panel-log" data-tab="log">Activity log</button>
+  </div>
+
+  <!-- INVENTORY -->
+  <section id="panel-inventory" role="tabpanel" aria-labelledby="tab-inventory">
+    <div class="cards" id="cards"></div>
+
+    <div class="filters">
+      <label class="field">Product
+        <select id="f-type"><option value="">All products</option></select>
+      </label>
+      <label class="field">Blood group
+        <select id="f-group"><option value="">All groups</option></select>
+      </label>
+      <label class="field">Status
+        <select id="f-status">
+          <option value="available">Available</option>
+          <option value="">All statuses</option>
+          <option value="separated">Separated</option>
+          <option value="issued">Issued</option>
+          <option value="discarded">Discarded</option>
+          <option value="expired">Expired</option>
+        </select>
+      </label>
+      <label class="field" style="flex:1">Search
+        <input id="f-search" type="search" placeholder="Unit ID, donor ID or note">
+      </label>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>Product</th><th>Group</th><th style="text-align:right">Volume</th>
+            <th>Source unit</th><th>Collected</th><th>Expires</th><th>Status</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="inv-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- REGISTER -->
+  <section id="panel-register" role="tabpanel" aria-labelledby="tab-register" hidden>
+    <div class="panel">
+      <h2>Register a whole blood collection</h2>
+      <p class="hint">Each unit gets an ID and an expiry date counted from the collection time.</p>
+      <form id="reg-form" novalidate>
+        <div class="grid">
+          <label class="field">Donor ID
+            <input id="r-donor" autocomplete="off" placeholder="e.g. D-10045">
+          </label>
+          <label class="field">Blood group
+            <select id="r-group"></select>
+          </label>
+          <label class="field">Collected at
+            <input id="r-time" type="datetime-local">
+          </label>
+          <label class="field">Volume collected (mL)
+            <input id="r-volume" type="number" inputmode="numeric" value="450">
+          </label>
+          <label class="field">Staff name
+            <input id="r-staff" autocomplete="name">
+          </label>
+        </div>
+        <div id="reg-error" class="form-error" role="alert"></div>
+        <div class="form-actions">
+          <button class="btn" type="submit">Register unit</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- SEPARATE -->
+  <section id="panel-separate" role="tabpanel" aria-labelledby="tab-separate" hidden>
+    <div class="panel">
+      <h2>Separate a whole blood unit</h2>
+      <p class="hint">Choose a unit, tick the components prepared, and enter the volume of each bag.</p>
+      <form id="sep-form" novalidate>
+        <div class="sep-layout">
+          <div>
+            <div class="grid">
+              <label class="field" style="grid-column: 1 / -1">Whole blood unit
+                <select id="s-unit"></select>
+              </label>
+              <label class="field">Separated at
+                <input id="s-time" type="datetime-local">
+              </label>
+              <label class="field">Staff name
+                <input id="s-staff" autocomplete="name">
+              </label>
+            </div>
+            <p id="s-info" class="sm" style="margin:.6rem 0 0"></p>
+            <div id="s-time-note" class="time-note" role="note"></div>
+            <div id="comp-rows"></div>
+            <div id="sep-error" class="form-error" role="alert"></div>
+            <div class="form-actions">
+              <button class="btn" type="submit" id="s-submit">Record separation</button>
+            </div>
+          </div>
+
+          <aside class="tube-panel" aria-label="Volume preview">
+            <div class="tube" id="tube" aria-hidden="true">
+              <div class="layer un"></div>
+              <div class="layer l-PLASMA" id="lay-PLASMA"></div>
+              <div class="layer l-PLT" id="lay-PLT"></div>
+              <div class="layer l-RBC" id="lay-RBC"></div>
+            </div>
+            <ul class="legend" id="legend"></ul>
+            <div class="total-line" id="total-line"></div>
+          </aside>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- LOG -->
+  <section id="panel-log" role="tabpanel" aria-labelledby="tab-log" hidden>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Time</th><th>Action</th><th>ID</th><th>Details</th><th>Staff</th></tr></thead>
+        <tbody id="log-body"></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<!-- Issue / discard dialog -->
+<dialog id="dlg" aria-labelledby="dlg-title">
+  <form id="dlg-form" novalidate>
+    <h2 id="dlg-title"></h2>
+    <label class="field"><span id="dlg-detail-label"></span>
+      <input id="dlg-detail" autocomplete="off">
+    </label>
+    <label class="field">Staff name
+      <input id="dlg-staff" autocomplete="name">
+    </label>
+    <div id="dlg-error" class="form-error" role="alert"></div>
+    <div class="dlg-actions">
+      <button type="button" class="btn ghost" id="dlg-cancel">Cancel</button>
+      <button type="submit" class="btn" id="dlg-confirm">Confirm</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+/* ==================================================================
+   Configuration
+   Shelf lives and time limits below are common defaults. Confirm them
+   against your own SOPs and local regulations before real use.
+   Expiry for every product is counted from the collection time.
+================================================================== */
+const KEY = "bloodComponentTracker.v1";
+const GROUPS = ["O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-"];
+const HOUR = 36e5, DAY = 864e5;
+const MAX_HOURS_PLASMA_PLT = 8;   // plasma and platelets must be prepared within this window
+const SOON_MS = 48 * HOUR;        // "expiring soon" threshold
+const VOLUME_LIMITS = { min: 350, max: 550 };
+
+const TYPES = {
+  WB:     { label: "Whole blood",     code: "WB",  days: 35,  storage: "2\u20136 \u00B0C" },
+  RBC:    { label: "Red blood cells", code: "RBC", days: 42,  storage: "2\u20136 \u00B0C" },
+  PLASMA: { label: "Plasma (FFP)",    code: "FFP", days: 365, storage: "Frozen at \u221218 \u00B0C or colder" },
+  PLT:    { label: "Platelets",       code: "PLT", days: 5,   storage: "20\u201324 \u00B0C with continuous agitation" }
+};
+const COMPONENT_TYPES = ["RBC", "PLASMA", "PLT"];
+const TYPE_ORDER = { WB: 0, RBC: 1, PLASMA: 2, PLT: 3 };
+const STATUS_LABEL = { available: "Available", separated: "Separated", issued: "Issued", discarded: "Discarded", expired: "Expired" };
+
+/* ==================================================================
+   State and storage
+================================================================== */
+let storageOk = true;
+let state = load();
+
+function emptyState() { return { products: [], log: [], seq: {}, lastOperator: "" }; }
+
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) {
+      const s = JSON.parse(raw);
+      if (s && Array.isArray(s.products) && Array.isArray(s.log)) return Object.assign(emptyState(), s);
+    }
+  } catch (e) {
+    storageOk = false;
+  }
+  return emptyState();
+}
+
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); }
+  catch (e) { storageOk = false; }
+  document.getElementById("storage-note").style.display = storageOk ? "none" : "block";
+}
+
+/* ==================================================================
+   Helpers
+================================================================== */
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]));
+const getProduct = id => state.products.find(p => p.id === id);
+
+function fmt(iso) {
+  return new Date(iso).toLocaleString([], { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+function toLocalInput(d) {
+  const off = d.getTimezoneOffset() * 60000;
+  return new Date(d.getTime() - off).toISOString().slice(0, 16);
+}
+function rel(iso) {
+  const ms = new Date(iso).getTime() - Date.now(), a = Math.abs(ms);
+  let s;
+  if (a < HOUR) s = Math.max(1, Math.round(a / 6e4)) + " min";
+  else if (a < 2 * DAY) s = Math.round(a / HOUR) + " h";
+  else s = Math.round(a / DAY) + " days";
+  return ms >= 0 ? "in " + s : s + " ago";
+}
+function effStatus(p) {
+  if (p.status === "available" && new Date(p.expiresAt).getTime() <= Date.now()) return "expired";
+  return p.status;
+}
+function nextUnitId(date) {
+  const pad = n => String(n).padStart(2, "0");
+  const d = "" + date.getFullYear() + pad(date.getMonth() + 1) + pad(date.getDate());
+  state.seq[d] = (state.seq[d] || 0) + 1;
+  return "WB-" + d + "-" + String(state.seq[d]).padStart(4, "0");
+}
+function addLog(action, productId, detail, staff) {
+  state.log.push({ at: new Date().toISOString(), action, productId, detail, staff });
+  if (state.log.length > 1000) state.log.splice(0, state.log.length - 1000);
+}
+
+let statusTimer;
+function say(msg, kind) {
+  const el = $("status");
+  el.textContent = msg;
+  el.className = "status show " + (kind || "ok");
+  clearTimeout(statusTimer);
+  statusTimer = setTimeout(() => { el.className = "status"; el.textContent = ""; }, 8000);
+}
+function showFormError(id, msg) {
+  const el = $(id);
+  el.textContent = msg || "";
+  el.classList.toggle("show", !!msg);
+}
+
+/* ==================================================================
+   Core operations. Each throws an Error with a user-readable message
+   when validation fails, so the UI can show it without crashing.
+================================================================== */
+function registerUnit({ donorId, group, collectedAt, volume, operator }) {
+  donorId = (donorId || "").trim();
+  operator = (operator || "").trim();
+  if (!/^[A-Za-z0-9-]{3,20}$/.test(donorId)) throw new Error("Enter a donor ID of 3\u201320 letters, numbers or hyphens.");
+  if (!GROUPS.includes(group)) throw new Error("Choose a blood group.");
+  const t = new Date(collectedAt).getTime();
+  if (!collectedAt || isNaN(t)) throw new Error("Enter the collection date and time.");
+  if (t > Date.now() + 60000) throw new Error("Collection time cannot be in the future.");
+  if (!Number.isFinite(volume) || volume < VOLUME_LIMITS.min || volume > VOLUME_LIMITS.max)
+    throw new Error("Volume must be between " + VOLUME_LIMITS.min + " and " + VOLUME_LIMITS.max + " mL.");
+  if (!operator) throw new Error("Enter the staff name who recorded this collection.");
+
+  const collectedIso = new Date(t).toISOString();
+  const unit = {
+    id: nextUnitId(new Date(t)), type: "WB", parentId: null,
+    donorId, group, volume,
+    collectedAt: collectedIso, createdAt: collectedIso,
+    expiresAt: new Date(t + TYPES.WB.days * DAY).toISOString(),
+    storage: TYPES.WB.storage, status: "available", note: ""
+  };
+  state.products.push(unit);
+  state.lastOperator = operator;
+  addLog("Registered", unit.id, group + ", " + volume + " mL, donor " + donorId, operator);
+  save();
+  return unit;
+}
+
+function separateUnit({ unitId, separatedAt, operator, parts }) {
+  operator = (operator || "").trim();
+  const unit = getProduct(unitId);
+  if (!unit || unit.type !== "WB") throw new Error("Select a whole blood unit.");
+  const st = effStatus(unit);
+  if (st !== "available") throw new Error("This unit is " + STATUS_LABEL[st].toLowerCase() + " and cannot be separated.");
+
+  const sepT = new Date(separatedAt).getTime();
+  const collT = new Date(unit.collectedAt).getTime();
+  if (!separatedAt || isNaN(sepT)) throw new Error("Enter the separation date and time.");
+  if (sepT < collT) throw new Error("Separation time cannot be before the collection time.");
+  if (sepT > Date.now() + 60000) throw new Error("Separation time cannot be in the future.");
+  if (!operator) throw new Error("Enter the staff name who performed the separation.");
+
+  const hours = (sepT - collT) / HOUR;
+  const entries = Object.entries(parts);
+  if (!entries.length) throw new Error("Tick at least one component to prepare.");
+
+  let total = 0;
+  for (const [type, vol] of entries) {
+    if (!COMPONENT_TYPES.includes(type)) throw new Error("Unknown component type.");
+    const label = TYPES[type].label;
+    if (!Number.isFinite(vol) || vol <= 0) throw new Error("Enter a volume above 0 mL for " + label.toLowerCase() + ".");
+    if ((type === "PLASMA" || type === "PLT") && hours > MAX_HOURS_PLASMA_PLT)
+      throw new Error(label + " must be prepared within " + MAX_HOURS_PLASMA_PLT + " hours of collection. This unit is " + hours.toFixed(1) + " hours old.");
+    total += vol;
+  }
+  if (total > unit.volume)
+    throw new Error("Components total " + total + " mL, which is more than the " + unit.volume + " mL collected.");
+
+  const sepIso = new Date(sepT).toISOString();
+  const created = entries.map(([type, vol]) => ({
+    id: TYPES[type].code + "-" + unit.id.slice(3), type, parentId: unit.id,
+    donorId: unit.donorId, group: unit.group, volume: vol,
+    collectedAt: unit.collectedAt, createdAt: sepIso,
+    expiresAt: new Date(collT + TYPES[type].days * DAY).toISOString(),
+    storage: TYPES[type].storage, status: "available", note: ""
+  }));
+
+  state.products.push(...created);
+  unit.status = "separated";
+  unit.separatedAt = sepIso;
+  unit.note = "Separated by " + operator;
+  state.lastOperator = operator;
+  addLog("Separated", unit.id, created.map(c => c.type === "PLASMA" ? "FFP" : c.type).join(", ") + " prepared; " + (unit.volume - total) + " mL unallocated", operator);
+  created.forEach(c => addLog("Prepared", c.id, TYPES[c.type].label + ", " + c.volume + " mL, from " + unit.id, operator));
+  save();
+  return { unit, created };
+}
+
+function changeStatus(id, status, detail, staff) {
+  const p = getProduct(id);
+  if (!p) throw new Error("Product not found.");
+  if (p.status !== "available") throw new Error("This product is already " + STATUS_LABEL[p.status].toLowerCase() + ".");
+  if (status === "issued" && effStatus(p) === "expired") throw new Error("Expired products cannot be issued. Discard it instead.");
+  p.status = status;
+  p.note = detail;
+  p.statusAt = new Date().toISOString();
+  state.lastOperator = staff;
+  addLog(status === "issued" ? "Issued" : "Discarded", id, detail, staff);
+  save();
+}
+
+/* ==================================================================
+   Tabs
+================================================================== */
+let currentTab = "inventory";
+function showTab(name) {
+  currentTab = name;
+  document.querySelectorAll(".tab").forEach(b => {
+    const on = b.dataset.tab === name;
+    b.setAttribute("aria-selected", on);
+    b.tabIndex = on ? 0 : -1;
+  });
+  ["inventory", "register", "separate", "log"].forEach(n => { $("panel-" + n).hidden = n !== name; });
+  if (name === "separate") renderSeparate();
+  if (name === "inventory") renderInventory();
+  if (name === "log") renderLog();
+}
+document.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
+$("tablist").addEventListener("keydown", e => {
+  const tabs = [...document.querySelectorAll(".tab")];
+  const i = tabs.findIndex(t => t.dataset.tab === currentTab);
+  let n = -1;
+  if (e.key === "ArrowRight") n = (i + 1) % tabs.length;
+  if (e.key === "ArrowLeft") n = (i - 1 + tabs.length) % tabs.length;
+  if (n >= 0) { e.preventDefault(); showTab(tabs[n].dataset.tab); tabs[n].focus(); }
+});
+
+/* ==================================================================
+   Inventory
+================================================================== */
+function renderCards() {
+  $("cards").innerHTML = Object.keys(TYPES).map(type => {
+    const all = state.products.filter(p => p.type === type);
+    const avail = all.filter(p => effStatus(p) === "available");
+    const vol = avail.reduce((s, p) => s + p.volume, 0);
+    const soon = avail.filter(p => new Date(p.expiresAt).getTime() - Date.now() <= SOON_MS).length;
+    const expired = all.filter(p => effStatus(p) === "expired").length;
+    return '<div class="card"><h3><span class="dot ' + type + '"></span>' + esc(TYPES[type].label) + "</h3>" +
+      '<div class="big">' + avail.length + "</div>" +
+      '<div class="small">available &middot; ' + vol.toLocaleString() + " mL</div>" +
+      (soon ? '<div class="flag">' + soon + " expiring within 48 h</div>" : "") +
+      (expired ? '<div class="flag bad">' + expired + " expired, needs discarding</div>" : "") +
+      "</div>";
+  }).join("");
+}
+
+function renderInventory() {
+  renderCards();
+  const fType = $("f-type").value, fGroup = $("f-group").value, fStatus = $("f-status").value;
+  const q = $("f-search").value.trim().toLowerCase();
+
+  const rows = state.products.filter(p => {
+    if (fType && p.type !== fType) return false;
+    if (fGroup && p.group !== fGroup) return false;
+    if (fStatus && effStatus(p) !== fStatus) return false;
+    if (q && ![p.id, p.parentId, p.donorId, p.note].some(v => v && String(v).toLowerCase().includes(q))) return false;
+    return true;
+  }).sort((a, b) =>
+    b.collectedAt.localeCompare(a.collectedAt) ||
+    String(a.parentId || a.id).localeCompare(String(b.parentId || b.id)) ||
+    TYPE_ORDER[a.type] - TYPE_ORDER[b.type]
+  );
+
+  if (!rows.length) {
+    $("inv-body").innerHTML = '<tr><td colspan="9" class="empty">' +
+      (state.products.length ? "No products match these filters." : "No products yet. Register a whole blood unit, or load demo data.") + "</td></tr>";
+    return;
+  }
+
+  $("inv-body").innerHTML = rows.map(p => {
+    const st = effStatus(p);
+    let actions = "";
+    if (st === "available") {
+      if (p.type === "WB") actions += '<button class="btn small" data-act="separate" data-id="' + esc(p.id) + '">Separate</button>';
+      actions += '<button class="btn small ghost" data-act="issue" data-id="' + esc(p.id) + '">Issue</button>';
+    }
+    if (st === "available" || st === "expired")
+      actions += '<button class="btn small ghost danger" data-act="discard" data-id="' + esc(p.id) + '">Discard</button>';
+    const source = p.parentId ? '<button class="link mono" data-act="trace" data-id="' + esc(p.parentId) + '">' + esc(p.parentId) + "</button>" : "&mdash;";
+    return "<tr>" +
+      '<td><span class="mono">' + esc(p.id) + '</span><span class="sm">Donor ' + esc(p.donorId) + "</span></td>" +
+      '<td><span class="chip"><span class="dot ' + p.type + '"></span>' + esc(TYPES[p.type].label) + '</span><span class="sm">' + esc(p.storage) + "</span></td>" +
+      "<td>" + esc(p.group) + "</td>" +
+      '<td class="num">' + p.volume + " mL</td>" +
+      "<td>" + source + "</td>" +
+      "<td>" + esc(fmt(p.collectedAt)) + "</td>" +
+      "<td>" + esc(fmt(p.expiresAt)) + '<span class="sm">' + esc(rel(p.expiresAt)) + "</span></td>" +
+      '<td><span class="badge ' + st + '">' + STATUS_LABEL[st] + "</span>" + (p.note ? '<span class="sm">' + esc(p.note) + "</span>" : "") + "</td>" +
+      '<td><div class="row-actions">' + actions + "</div></td></tr>";
+  }).join("");
+}
+
+$("inv-body").addEventListener("click", e => {
+  const btn = e.target.closest("button[data-act]");
+  if (!btn) return;
+  const id = btn.dataset.id, act = btn.dataset.act;
+  if (act === "trace") { $("f-search").value = id; $("f-status").value = ""; renderInventory(); return; }
+  if (act === "separate") { showTab("separate"); $("s-unit").value = id; onUnitChange(true); return; }
+  if (act === "issue") {
+    openAction({ title: "Issue " + id, detailLabel: "Issued to (patient, ward or facility)", confirmText: "Issue",
+      onConfirm: (detail, staff) => { changeStatus(id, "issued", "Issued to " + detail, staff); say(id + " issued."); renderAll(); } });
+  }
+  if (act === "discard") {
+    openAction({ title: "Discard " + id, detailLabel: "Reason for discarding", confirmText: "Discard",
+      onConfirm: (detail, staff) => { changeStatus(id, "discarded", "Discarded: " + detail, staff); say(id + " discarded."); renderAll(); } });
+  }
+});
+["f-type", "f-group", "f-status"].forEach(id => $(id).addEventListener("change", renderInventory));
+$("f-search").addEventListener("input", renderInventory);
+
+/* ==================================================================
+   Issue / discard dialog
+================================================================== */
+let pendingAction = null;
+function openAction({ title, detailLabel, confirmText, onConfirm }) {
+  $("dlg-title").textContent = title;
+  $("dlg-detail-label").textContent = detailLabel;
+  $("dlg-detail").value = "";
+  $("dlg-staff").value = state.lastOperator || "";
+  $("dlg-confirm").textContent = confirmText;
+  showFormError("dlg-error", "");
+  pendingAction = onConfirm;
+  $("dlg").showModal();
+  $("dlg-detail").focus();
+}
+$("dlg-form").addEventListener("submit", e => {
+  e.preventDefault();
+  const detail = $("dlg-detail").value.trim(), staff = $("dlg-staff").value.trim();
+  if (!detail || !staff) { showFormError("dlg-error", "Fill in both fields."); return; }
+  try { pendingAction(detail, staff); $("dlg").close(); }
+  catch (err) { showFormError("dlg-error", err.message); }
+});
+$("dlg-cancel").addEventListener("click", () => $("dlg").close());
+
+/* ==================================================================
+   Register tab
+================================================================== */
+$("reg-form").addEventListener("submit", e => {
+  e.preventDefault();
+  showFormError("reg-error", "");
+  try {
+    const unit = registerUnit({
+      donorId: $("r-donor").value,
+      group: $("r-group").value,
+      collectedAt: $("r-time").value,
+      volume: Number($("r-volume").value),
+      operator: $("r-staff").value
+    });
+    say("Registered " + unit.id + ". Expires " + fmt(unit.expiresAt) + ".");
+    $("r-donor").value = "";
+    $("r-time").value = toLocalInput(new Date());
+    renderAll();
+    $("r-donor").focus();
+  } catch (err) {
+    showFormError("reg-error", err.message);
+  }
+});
+
+/* ==================================================================
+   Separate tab
+================================================================== */
+let lastSepUnit = null;
+
+function buildComponentRows() {
+  $("comp-rows").innerHTML = COMPONENT_TYPES.map(t =>
+    '<div class="comp-row" id="row-' + t + '">' +
+      '<div class="head">' +
+        '<label class="check"><input type="checkbox" id="c-' + t + '"><span class="dot ' + t + '"></span>' + esc(TYPES[t].label) + "</label>" +
+        '<span class="vol"><input type="number" id="v-' + t + '" inputmode="numeric" aria-label="' + esc(TYPES[t].label) + ' volume in mL"> mL</span>' +
+      "</div>" +
+      '<p class="meta">Store: ' + esc(TYPES[t].storage) + ". Expires " + TYPES[t].days + " days after collection." + "</p>" +
+    "</div>"
+  ).join("");
+  COMPONENT_TYPES.forEach(t => {
+    $("c-" + t).addEventListener("change", updateSeparatePreview);
+    $("v-" + t).addEventListener("input", updateSeparatePreview);
+  });
+}
+
+function renderSeparate() {
+  const units = state.products
+    .filter(p => p.type === "WB" && effStatus(p) === "available")
+    .sort((a, b) => b.collectedAt.localeCompare(a.collectedAt));
+  const prev = $("s-unit").value;
+  $("s-unit").innerHTML = units.length
+    ? units.map(u => '<option value="' + esc(u.id) + '">' + esc(u.id + " \u00B7 " + u.group + " \u00B7 " + u.volume + " mL \u00B7 collected " + fmt(u.collectedAt)) + "</option>").join("")
+    : '<option value="">No whole blood units available</option>';
+  if (prev && units.some(u => u.id === prev)) $("s-unit").value = prev;
+  $("s-submit").disabled = !units.length;
+  $("s-staff").value = $("s-staff").value || state.lastOperator || "";
+  onUnitChange($("s-unit").value !== lastSepUnit);
+}
+
+function onUnitChange(applyDefaults) {
+  const unit = getProduct($("s-unit").value);
+  lastSepUnit = unit ? unit.id : null;
+  if (unit && applyDefaults) {
+    $("s-time").value = toLocalInput(new Date());
+    const defaults = { RBC: Math.round(unit.volume * 0.5), PLASMA: Math.round(unit.volume * 0.3), PLT: 55 };
+    COMPONENT_TYPES.forEach(t => { $("c-" + t).checked = true; $("v-" + t).value = defaults[t]; });
+  }
+  updateSeparatePreview();
+}
+
+function updateSeparatePreview() {
+  const unit = getProduct($("s-unit").value);
+  const legend = $("legend");
+  showFormError("sep-error", "");
+
+  if (!unit) {
+    $("s-info").textContent = "";
+    $("s-time-note").className = "time-note";
+    COMPONENT_TYPES.forEach(t => { $("c-" + t).disabled = true; $("v-" + t).disabled = true; });
+    legend.innerHTML = ""; $("total-line").textContent = "";
+    COMPONENT_TYPES.forEach(t => { $("lay-" + t).style.height = "0%"; });
+    return;
+  }
+
+  const hours = (new Date($("s-time").value).getTime() - new Date(unit.collectedAt).getTime()) / HOUR;
+  const late = hours > MAX_HOURS_PLASMA_PLT;
+  $("s-info").textContent = unit.group + " \u00B7 " + unit.volume + " mL \u00B7 collected " + fmt(unit.collectedAt) +
+    (isNaN(hours) ? "" : hours < 0 ? " \u00B7 separation time is before collection" : " \u00B7 " + hours.toFixed(1) + " h since collection");
+
+  const note = $("s-time-note");
+  if (late) {
+    note.textContent = "More than " + MAX_HOURS_PLASMA_PLT + " hours have passed since collection. Plasma and platelets can no longer be prepared from this unit; only red cells are available.";
+    note.className = "time-note show";
+  } else {
+    note.className = "time-note";
+  }
+
+  COMPONENT_TYPES.forEach(t => {
+    const timeLimited = (t === "PLASMA" || t === "PLT") && late;
+    if (timeLimited) $("c-" + t).checked = false;
+    $("c-" + t).disabled = timeLimited;
+    $("v-" + t).disabled = !$("c-" + t).checked;
+    $("row-" + t).classList.toggle("off", !$("c-" + t).checked);
+  });
+
+  // Tube preview
+  const vols = {};
+  let allocated = 0;
+  COMPONENT_TYPES.forEach(t => {
+    const v = $("c-" + t).checked ? Number($("v-" + t).value) : 0;
+    vols[t] = Number.isFinite(v) && v > 0 ? v : 0;
+    allocated += vols[t];
+  });
+  const scale = Math.max(unit.volume, allocated) || 1;
+  COMPONENT_TYPES.forEach(t => {
+    let h = vols[t] / scale * 100;
+    if (t === "PLT" && vols[t] > 0) h = Math.max(h, 4);
+    $("lay-" + t).style.height = h + "%";
+  });
+
+  legend.innerHTML = ["PLASMA", "PLT", "RBC"].map(t =>
+    '<li><span class="dot ' + t + '"></span>' + esc(TYPES[t].label) + '<span class="v">' + vols[t] + " mL</span></li>"
+  ).join("");
+  const over = allocated > unit.volume;
+  const tl = $("total-line");
+  tl.className = "total-line" + (over ? " over" : "");
+  tl.textContent = over
+    ? "Allocated " + allocated + " mL, which is " + (allocated - unit.volume) + " mL more than collected."
+    : "Allocated " + allocated + " of " + unit.volume + " mL. Unallocated: " + (unit.volume - allocated) + " mL.";
+}
+
+$("s-unit").addEventListener("change", () => onUnitChange(true));
+$("s-time").addEventListener("input", updateSeparatePreview);
+
+$("sep-form").addEventListener("submit", e => {
+  e.preventDefault();
+  showFormError("sep-error", "");
+  try {
+    const parts = {};
+    COMPONENT_TYPES.forEach(t => { if ($("c-" + t).checked) parts[t] = Number($("v-" + t).value); });
+    const res = separateUnit({
+      unitId: $("s-unit").value,
+      separatedAt: $("s-time").value,
+      operator: $("s-staff").value,
+      parts
+    });
+    say("Separated " + res.unit.id + ". Created: " + res.created.map(c => c.id).join(", ") + ".");
+    lastSepUnit = null;
+    renderAll();
+    $("f-search").value = res.unit.id;
+    $("f-status").value = "";
+    showTab("inventory");
+  } catch (err) {
+    showFormError("sep-error", err.message);
+  }
+});
+
+/* ==================================================================
+   Activity log
+================================================================== */
+function renderLog() {
+  const rows = state.log.slice(-300).reverse();
+  $("log-body").innerHTML = rows.length
+    ? rows.map(l => "<tr><td>" + esc(fmt(l.at)) + "</td><td>" + esc(l.action) + '</td><td class="mono">' + esc(l.productId) + "</td><td>" + esc(l.detail) + "</td><td>" + esc(l.staff) + "</td></tr>").join("")
+    : '<tr><td colspan="5" class="empty">No activity yet.</td></tr>';
+}
+
+/* ==================================================================
+   Export, demo data, reset
+================================================================== */
+function csvCell(v) {
+  let s = String(v == null ? "" : v);
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;   // stop spreadsheet formula injection
+  return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+$("btn-export").addEventListener("click", () => {
+  if (!state.products.length) { say("Nothing to export yet.", "err"); return; }
+  const head = ["id", "product", "source_unit", "donor_id", "blood_group", "volume_ml", "collected_at", "prepared_at", "expires_at", "status", "storage", "note"];
+  const lines = [head.join(",")].concat(state.products.map(p =>
+    [p.id, TYPES[p.type].label, p.parentId, p.donorId, p.group, p.volume, p.collectedAt, p.createdAt, p.expiresAt, effStatus(p), p.storage, p.note].map(csvCell).join(",")
+  ));
+  const blob = new Blob([lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "blood-components-" + new Date().toISOString().slice(0, 10) + ".csv";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+});
+
+$("btn-demo").addEventListener("click", () => {
+  try {
+    const now = Date.now(), who = "Demo staff";
+    const mk = (hAgo, donor, group) => registerUnit({ donorId: donor, group, collectedAt: new Date(now - hAgo * HOUR).toISOString(), volume: 450, operator: who });
+    mk(2, "D-10041", "O+");
+    mk(5, "D-10042", "A-");
+    mk(11, "D-10043", "B+");
+    mk(34 * 24, "D-10037", "A+");
+    const u4 = mk(30, "D-10044", "O-");
+    separateUnit({ unitId: u4.id, separatedAt: new Date(now - 27 * HOUR).toISOString(), operator: who, parts: { RBC: 230, PLASMA: 140, PLT: 55 } });
+    changeStatus("RBC-" + u4.id.slice(3), "issued", "Issued to Ward 4B", who);
+    const u6 = mk(115.2, "D-10039", "AB+");
+    separateUnit({ unitId: u6.id, separatedAt: new Date(now - 111.2 * HOUR).toISOString(), operator: who, parts: { RBC: 225, PLASMA: 150, PLT: 52 } });
+    say("Demo data loaded.");
+    renderAll();
+  } catch (err) {
+    say("Could not load demo data: " + err.message, "err");
+  }
+});
+
+$("btn-reset").addEventListener("click", () => {
+  if (!confirm("Delete all units, components and log entries from this browser? This cannot be undone.")) return;
+  state = emptyState();
+  lastSepUnit = null;
+  save();
+  say("All data cleared.");
+  renderAll();
+});
+
+/* ==================================================================
+   Boot
+================================================================== */
+function renderAll() {
+  renderInventory();
+  if (currentTab === "separate") renderSeparate();
+  if (currentTab === "log") renderLog();
+}
+
+(function init() {
+  Object.keys(TYPES).forEach(t => $("f-type").insertAdjacentHTML("beforeend", '<option value="' + t + '">' + esc(TYPES[t].label) + "</option>"));
+  GROUPS.forEach(g => {
+    $("f-group").insertAdjacentHTML("beforeend", '<option value="' + g + '">' + g + "</option>");
+    $("r-group").insertAdjacentHTML("beforeend", '<option value="' + g + '">' + g + "</option>");
+  });
+  $("r-time").value = toLocalInput(new Date());
+  $("r-staff").value = state.lastOperator || "";
+  buildComponentRows();
+  document.getElementById("storage-note").style.display = storageOk ? "none" : "block";
+  showTab("inventory");
+  setInterval(() => { if (currentTab === "inventory") renderInventory(); }, 60000);
+})();
+</script>
+</body>
+</html>
