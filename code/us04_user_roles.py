@@ -1,137 +1,87 @@
 """US-04 User Roles.
 
-Tasks: role definitions & access control decorator -> assign role form -> views (manage roles, unauthorized) -> GUI pages -> URLs.
+Tasks: role-based access decorator used by every other story -> administrator page to assign roles
+(donor / staff / administrator) -> GUI table -> URLs.
 """
 from functools import wraps
 
 from django import forms
 from django.contrib import messages
-from django.shortcuts import redirect
+from django.contrib.auth.views import redirect_to_login
+from django.core.exceptions import PermissionDenied
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import path
 
 from .common import render_page
 from .models import User
 
-# ---- Roles
-ROLE_DONOR = "donor"
-ROLE_STAFF = "staff"
-ROLE_ADMIN = "admin"
-
-ROLE_CHOICES = (
-    (ROLE_DONOR, "Donor"),
-    (ROLE_STAFF, "Staff"),
-    (ROLE_ADMIN, "Administrator"),
-)
-
-DONOR_ROLES = (ROLE_DONOR,)
-STAFF_ROLES = (ROLE_STAFF, ROLE_ADMIN)
-ADMIN_ROLES = (ROLE_ADMIN,)
-ALL_ROLES = (ROLE_DONOR, ROLE_STAFF, ROLE_ADMIN)
+STAFF_ROLES = (User.ROLE_STAFF, User.ROLE_ADMIN)
+ADMIN_ROLES = (User.ROLE_ADMIN,)
+ALL_ROLES = (User.ROLE_DONOR, User.ROLE_STAFF, User.ROLE_ADMIN)
 
 
-# ---- Decorator
-def us04_role_required(*allowed_roles):
-    """Enforce role-based access control on views.
+def us04_role_required(*roles):
+    """Anonymous users go to the login page; logged-in users with the wrong role get a 403."""
 
-    Acceptance criteria:
-    - Donors can access donor functions.
-    - Staff can access staff functions.
-    - Administrators can access administrator functions.
-    - Users cannot access functions outside their permissions.
-    """
-
-    def decorator(view_func):
-        @wraps(view_func)
-        def _wrapped(request, *args, **kwargs):
+    def decorator(view):
+        @wraps(view)
+        def wrapper(request, *args, **kwargs):
             if not request.user.is_authenticated:
-                next_url = request.get_full_path()
-                return redirect(f"/login/?next={next_url}")
-            user_role = getattr(request.user, "role", None) or (
-                ROLE_ADMIN if getattr(request.user, "is_superuser", False) else ROLE_DONOR
-            )
-            if user_role not in allowed_roles and not getattr(request.user, "is_superuser", False):
-                return render_page(
-                    request,
-                    TEMPLATE_UNAUTHORIZED,
-                    {"required_roles": allowed_roles, "current_role": user_role},
-                    status=403,
-                )
-            return view_func(request, *args, **kwargs)
+                return redirect_to_login(request.get_full_path())
+            if request.user.role not in roles:
+                raise PermissionDenied("You do not have permission to access this page.")
+            return view(request, *args, **kwargs)
 
-        return _wrapped
+        return wrapper
 
     return decorator
 
 
 # ---- Form
-class US04AssignRoleForm(forms.Form):
-    user_id = forms.IntegerField(widget=forms.HiddenInput)
-    role = forms.ChoiceField(choices=ROLE_CHOICES, label="Assign Role")
+class US04UserRoleForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ("role",)
 
 
 # ---- GUI
-TEMPLATE_ASSIGN = """<div class="card"><h2>US-04 Manage User Roles</h2>
-<p>Assign appropriate roles to users to control access to system functions.</p>
-<table>
- <tr><th>Username</th><th>Name</th><th>Email</th><th>Current Role</th><th>Assign New Role</th></tr>
- {% for u in users %}
- <tr>
-  <td>{{ u.username }}</td>
-  <td>{{ u.get_full_name|default:u.username }}</td>
-  <td>{{ u.email }}</td>
-  <td><span class="badge">{{ u.role|title }}</span></td>
-  <td>
-   <form method="post" style="display:inline-flex;gap:0.5rem;align-items:center;">{% csrf_token %}
-    <input type="hidden" name="user_id" value="{{ u.pk }}">
-    <select name="role">
-     {% for val, label in role_choices %}
-     <option value="{{ val }}" {% if u.role == val %}selected{% endif %}>{{ label }}</option>
-     {% endfor %}
-    </select>
-    <button class="btn" type="submit">Update Role</button>
-   </form>
-  </td>
- </tr>
- {% empty %}
- <tr><td colspan="5">No registered users found.</td></tr>
- {% endfor %}
-</table></div>"""
-
-TEMPLATE_UNAUTHORIZED = """<div class="card narrow"><h2>403 — Access Denied</h2>
-<p>You do not have permission to access this function.</p>
-<p>Your current role (<strong>{{ current_role|title }}</strong>) does not have access. Required role(s): <strong>{{ required_roles|join:", "|title }}</strong>.</p>
-<p><a class="btn" href="{% url 'home' %}">Return Home</a></p></div>"""
+TEMPLATE = """<div class="card"><h2>US-04 User Roles</h2>
+<p>Donors register themselves; promote users to staff or administrator here.</p>
+<table><tr><th>Username</th><th>Name</th><th>Email</th><th>Role</th><th></th></tr>
+{% for u, form in rows %}
+<tr><td>{{ u.username }}</td><td>{{ u.get_full_name }}</td><td>{{ u.email }}</td><td>{{ form.role }}</td>
+<td><form id="roleform-{{ u.pk }}" method="post" action="{% url 'us04_update_user_role' u.pk %}">{% csrf_token %}</form>
+<button class="btn" type="submit" form="roleform-{{ u.pk }}"{% if u == user %} disabled{% endif %}>Save</button></td></tr>
+{% endfor %}</table></div>"""
 
 
 # ---- Views
 @us04_role_required(*ADMIN_ROLES)
-def us04_assign_role(request):
+def us04_user_roles(request):
+    rows = []
+    for u in User.objects.order_by("username"):
+        form = US04UserRoleForm(instance=u, prefix=f"u{u.pk}")
+        form.fields["role"].widget.attrs["form"] = f"roleform-{u.pk}"  # tie the select to its own <form>
+        rows.append((u, form))
+    return render_page(request, TEMPLATE, {"rows": rows})
+
+
+@us04_role_required(*ADMIN_ROLES)
+def us04_update_user_role(request, user_id):
+    target = get_object_or_404(User, pk=user_id)
     if request.method == "POST":
-        form = US04AssignRoleForm(request.POST)
-        if form.is_valid():
-            uid = form.cleaned_data["user_id"]
-            new_role = form.cleaned_data["role"]
-            try:
-                target_user = User.objects.get(pk=uid)
-                target_user.role = new_role
-                target_user.save()
-                messages.success(request, f"Role for '{target_user.username}' successfully changed to {new_role}.")
-            except User.DoesNotExist:
-                messages.error(request, "Selected user does not exist.")
-            return redirect("us04_assign_role")
-    users = User.objects.all().order_by("username")
-    return render_page(
-        request,
-        TEMPLATE_ASSIGN,
-        {"users": users, "role_choices": ROLE_CHOICES},
-    )
-
-
-def us04_unauthorized(request):
-    return render_page(request, TEMPLATE_UNAUTHORIZED, {}, status=403)
+        form = US04UserRoleForm(request.POST, instance=target, prefix=f"u{target.pk}")
+        if target == request.user:
+            messages.error(request, "You cannot change your own role.")
+        elif form.is_valid():
+            form.save()
+            messages.success(request, f"Role for {target.username} updated to {target.get_role_display()}.")
+        else:
+            messages.error(request, "Invalid role selected.")
+    return redirect("us04_user_roles")
 
 
 URLS = [
-    path("admin/roles/", us04_assign_role, name="us04_assign_role"),
-    path("unauthorized/", us04_unauthorized, name="us04_unauthorized"),
+    path("roles/", us04_user_roles, name="us04_user_roles"),
+    path("roles/<int:user_id>/update/", us04_update_user_role, name="us04_update_user_role"),
 ]
