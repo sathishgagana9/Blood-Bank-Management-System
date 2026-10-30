@@ -2,8 +2,11 @@
 
 Tasks: registration form (validation) -> view (create account, donor role) -> GUI page -> URL.
 """
+import re
+
 from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
+from django.core.exceptions import ValidationError
 from django.shortcuts import redirect
 from django.urls import path
 
@@ -22,6 +25,32 @@ class US01RegisterUserForm(UserCreationForm):
         for name in ("first_name", "last_name", "email", "phone", "address"):
             self.fields[name].required = True
         self.fields["address"].widget.attrs["rows"] = 3
+
+    NAME_PATTERN = re.compile(r"^[A-Za-z][A-Za-z .'-]*$")
+
+    def _clean_name(self, field):
+        value = self.cleaned_data[field].strip()
+        if not self.NAME_PATTERN.match(value):
+            raise ValidationError("Invalid characters in name: use letters, spaces, apostrophes, dots or hyphens only.")
+        return value
+
+    def clean_first_name(self):
+        return self._clean_name("first_name")
+
+    def clean_last_name(self):
+        return self._clean_name("last_name")
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].strip()
+        if User.objects.filter(email__iexact=email).exists():
+            raise ValidationError("This email is already registered.")
+        return email
+
+    def clean_phone(self):
+        phone = self.cleaned_data["phone"].strip()
+        if User.objects.filter(phone=phone).exists():
+            raise ValidationError("This phone number is already registered.")
+        return phone
 
     def save(self, commit=True):
         user = super().save(commit=False)

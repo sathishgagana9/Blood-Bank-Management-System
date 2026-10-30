@@ -17,6 +17,7 @@ class US17AvailabilityForm(forms.Form):
     blood_group = forms.ChoiceField(required=False, choices=[("", "Any blood group")] + BLOOD_GROUPS)
     component = forms.ChoiceField(required=False, choices=[("", "Any component")] + Donation.COMPONENT_CHOICES)
     location = forms.CharField(required=False, label="Blood bank / location")
+    min_quantity = forms.IntegerField(required=False, min_value=1, label="Units needed")
 
 
 # ---- GUI
@@ -25,6 +26,7 @@ TEMPLATE = """<div class="card"><h2>US-17 Search Blood Availability</h2>
  <div>{{ form.blood_group.label_tag }}{{ form.blood_group }}</div>
  <div>{{ form.component.label_tag }}{{ form.component }}</div>
  <div>{{ form.location.label_tag }}{{ form.location }}</div>
+ <div>{{ form.min_quantity.label_tag }}{{ form.min_quantity }}</div>
  <div><button class="btn" type="submit">Search</button></div>
 </form>
 <table><tr><th>Blood bank</th><th>Location</th><th>Contact</th><th>Group</th><th>Component</th><th>Units available</th><th></th></tr>
@@ -50,6 +52,8 @@ def us17_search_blood_availability(request):
             rows = rows.filter(component=data["component"])
         if data["location"]:
             rows = rows.filter(Q(blood_bank__name__icontains=data["location"]) | Q(blood_bank__location__icontains=data["location"]))
+        if data["min_quantity"]:
+            rows = rows.filter(quantity__gte=data["min_quantity"])
     return render_page(request, TEMPLATE, {"form": form, "rows": rows.order_by("-quantity")})
 
 
