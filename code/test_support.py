@@ -34,7 +34,7 @@ class BaseCase(TestCase):
         data.update(overrides)
         return data
 
-    def donation_payload(self, donor, **overrides):
+    def donation_payload(self, donor, /, **overrides):
         data = {
             "donor": donor.pk, "blood_group": donor.blood_group,
             "donation_date": timezone.localdate().isoformat(), "blood_bank": self.bank.pk,
