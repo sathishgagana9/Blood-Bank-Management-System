@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in | Blood Bank Management System</title>
+<!--
+  US-03: Invalid Login Error
+  As a user, I want invalid login attempts to show an error message,
+  so that I know when my credentials are incorrect.
+
+  Acceptance criteria                          Where it is handled
+  1. Invalid credentials are detected          authenticate() throws AuthError
+  2. Login is rejected                         submit handler never reaches the success branch
+  3. A clear error message is displayed        showMessage() + aria-invalid on both fields
+  4. The application does not crash            try/catch/finally around every login attempt
+
+  To check the criteria, open the browser console and run: runLoginTests()
+-->
+<style>
+  :root {
+    --bg: #eef1f4;
+    --surface: #ffffff;
+    --ink: #17212b;
+    --muted: #55657a;
+    --line: #c8d2dc;
+    --brand: #b3203a;
+    --accent: #17406b;
+    --accent-ink: #ffffff;
+    --focus: #1f6fb5;
+    --error: #a3202f;
+    --error-bg: #fbe9eb;
+    --ok: #17713f;
+    --ok-bg: #e3f3ea;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f151a;
+      --surface: #18212a;
+      --ink: #e4ebf0;
+      --muted: #9aaab8;
+      --line: #35444f;
+      --brand: #e0556d;
+      --accent: #8fbbdc;
+      --accent-ink: #0c1a24;
+      --focus: #7db7ee;
+      --error: #ff8d98;
+      --error-bg: #3a1c20;
+      --ok: #6fd49a;
+      --ok-bg: #16311f;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    display: grid; place-items: center; padding: 1rem;
+    background: var(--bg); color: var(--ink);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  .card {
+    width: 100%; max-width: 400px; padding: 2rem;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+  }
+  .brand { display: flex; align-items: center; gap: .6rem; margin-bottom: 1.25rem; font-weight: 700; }
+  .brand svg { width: 28px; height: 28px; flex: none; }
+  h1 { margin: 0 0 .25rem; font-size: 1.5rem; }
+  .sub { margin: 0 0 1.25rem; color: var(--muted); }
+
+  label { display: block; margin-bottom: .3rem; font-weight: 600; font-size: .9rem; }
+  .input-row { position: relative; margin-bottom: 1rem; }
+  input {
+    width: 100%; padding: .65rem .75rem; font: inherit;
+    color: var(--ink); background: var(--surface);
+    border: 1px solid var(--line); border-radius: 6px;
+  }
+  input[aria-invalid="true"] { border-color: var(--error); border-width: 2px; padding: calc(.65rem - 1px) calc(.75rem - 1px); }
+  #password { padding-right: 4.5rem; }
+  .toggle {
+    position: absolute; right: .35rem; top: 50%; transform: translateY(-50%);
+    font: inherit; font-size: .85rem; font-weight: 600; cursor: pointer;
+    background: none; border: 0; color: var(--accent); padding: .3rem .5rem; border-radius: 4px;
+  }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+  .message { display: none; margin-bottom: 1rem; padding: .7rem .85rem; border-radius: 6px; border: 1px solid; font-size: .92rem; }
+  .message.show { display: block; }
+  .message.error { color: var(--error); background: var(--error-bg); border-color: var(--error); }
+  .message.success { color: var(--ok); background: var(--ok-bg); border-color: var(--ok); }
+  .message strong { display: block; }
+
+  button.submit {
+    width: 100%; padding: .75rem; font: inherit; font-weight: 700; cursor: pointer;
+    color: var(--accent-ink); background: var(--accent); border: 0; border-radius: 6px;
+  }
+  button.submit:disabled { opacity: .6; cursor: not-allowed; }
+  .hint { margin: 1.25rem 0 0; font-size: .8rem; color: var(--muted); }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; }
+</style>
+</head>
+<body>
+  <main class="card">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="var(--brand)" d="M12 2C12 2 5 10 5 15a7 7 0 0 0 14 0c0-5-7-13-7-13z"/></svg>
+      <span>Blood Bank Management System</span>
+    </div>
+
+    <h1>Sign in</h1>
+    <p class="sub">Enter your email and password to continue.</p>
+
+    <div id="message" class="message" role="alert" aria-live="assertive"></div>
+
+    <form id="login-form" novalidate>
+      <label for="email">Email</label>
+      <div class="input-row">
+        <input id="email" name="email" type="email" autocomplete="username" required aria-describedby="message">
+      </div>
+
+      <label for="password">Password</label>
+      <div class="input-row">
+        <input id="password" name="password" type="password" autocomplete="current-password" required aria-describedby="message">
+        <button type="button" class="toggle" id="toggle" aria-controls="password" aria-pressed="false">Show</button>
+      </div>
+
+      <button type="submit" class="submit" id="submit">Sign in</button>
+    </form>
+
+    <p class="hint">Demo account: <code>admin@bloodbank.test</code> / <code>Admin@123</code></p>
+  </main>
+
+<script>
+/* ==================================================================
+   Authentication layer
+   Replace authenticate() with a real call to your backend, for example:
+
+     const res = await fetch("/api/login", {
+       method: "POST",
+       headers: { "Content-Type": "application/json" },
+       body: JSON.stringify({ email, password })
+     });
+     if (res.status === 401) throw new AuthError(MESSAGES.invalid);
+     if (!res.ok) throw new Error("Server error " + res.status);
+     return res.json();
+
+   A 401 must become an AuthError. Any other failure should throw a normal
+   Error so the UI shows the generic "try again" message instead.
+================================================================== */
+const MESSAGES = {
+  invalid: "Incorrect email or password.",
+  missing: "Enter both your email and password.",
+  badEmail: "Enter a valid email address, such as name@example.com.",
+  unexpected: "Something went wrong on our side. Try again in a moment."
+};
+
+class AuthError extends Error {
+  constructor(message) { super(message); this.name = "AuthError"; }
+}
+
+// Demo data only. Never keep plaintext passwords in a real application.
+const DEMO_USERS = [
+  { email: "admin@bloodbank.test", password: "Admin@123", name: "Admin" }
+];
+
+function authenticate(email, password) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      try {
+        const e = String(email == null ? "" : email).trim().toLowerCase();
+        const p = String(password == null ? "" : password);
+        const user = DEMO_USERS.find(u => u.email === e && u.password === p);
+        // Criteria 1 and 2: invalid credentials are detected and login is rejected.
+        // One message for both unknown email and wrong password, so the error
+        // does not reveal which accounts exist.
+        if (!user) return reject(new AuthError(MESSAGES.invalid));
+        resolve({ email: user.email, name: user.name });
+      } catch (err) {
+        reject(err);
+      }
+    }, 400); // simulated network delay
+  });
+}
+
+/* ==================================================================
+   UI layer
+================================================================== */
+const form = document.getElementById("login-form");
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
+const submitBtn = document.getElementById("submit");
+const messageBox = document.getElementById("message");
+const toggleBtn = document.getElementById("toggle");
+
+function showMessage(title, detail, type) {
+  messageBox.replaceChildren();
+  const strong = document.createElement("strong");
+  strong.textContent = title;
+  messageBox.appendChild(strong);
+  if (detail) messageBox.appendChild(document.createTextNode(detail));
+  messageBox.className = "message show " + type;
+}
+
+function clearMessage() {
+  messageBox.replaceChildren();
+  messageBox.className = "message";
+  emailInput.removeAttribute("aria-invalid");
+  passwordInput.removeAttribute("aria-invalid");
+}
+
+function markInvalid() {
+  for (const el of arguments) el.setAttribute("aria-invalid", "true");
+}
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  clearMessage();
+
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
+
+  // Client-side checks run first, so obviously bad input never reaches the server.
+  if (!email || !password) {
+    showMessage(MESSAGES.missing, "", "error");
+    if (!email) markInvalid(emailInput);
+    if (!password) markInvalid(passwordInput);
+    (!email ? emailInput : passwordInput).focus();
+    return;
+  }
+  if (!EMAIL_PATTERN.test(email)) {
+    showMessage(MESSAGES.badEmail, "", "error");
+    markInvalid(emailInput);
+    emailInput.focus();
+    return;
+  }
+
+  submitBtn.disabled = true;           // blocks double submits
+  submitBtn.textContent = "Signing in\u2026";
+
+  try {
+    const user = await authenticate(email, password);
+    showMessage("Signed in.", " Welcome back, " + user.name + ".", "success");
+    // On success, redirect here, for example: window.location.href = "/dashboard";
+  } catch (err) {
+    // Criterion 3: a clear error message is displayed.
+    // Criterion 4: every failure path ends here, so the page keeps working.
+    if (err instanceof AuthError) {
+      showMessage(err.message, " Check your details and try again.", "error");
+      markInvalid(emailInput, passwordInput);
+      passwordInput.value = "";
+      passwordInput.focus();
+    } else {
+      console.error("Unexpected login error:", err);
+      showMessage(MESSAGES.unexpected, "", "error");
+    }
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Sign in";
+  }
+});
+
+// Clear the error as soon as the user starts correcting their input.
+[emailInput, passwordInput].forEach(el => el.addEventListener("input", clearMessage));
+
+toggleBtn.addEventListener("click", () => {
+  const show = passwordInput.type === "password";
+  passwordInput.type = show ? "text" : "password";
+  toggleBtn.textContent = show ? "Hide" : "Show";
+  toggleBtn.setAttribute("aria-pressed", String(show));
+});
+
+/* ==================================================================
+   Self-check for the acceptance criteria. Run runLoginTests() in the console.
+================================================================== */
+async function runLoginTests() {
+  const cases = [
+    { name: "Wrong password is rejected",       email: "admin@bloodbank.test", password: "wrong",     expect: "AuthError" },
+    { name: "Unknown email is rejected",        email: "nobody@bloodbank.test", password: "Admin@123", expect: "AuthError" },
+    { name: "Wrong case in password rejected",  email: "admin@bloodbank.test", password: "admin@123", expect: "AuthError" },
+    { name: "Empty values do not crash",        email: "",                     password: "",          expect: "AuthError" },
+    { name: "null and undefined do not crash",  email: null,                   password: undefined,   expect: "AuthError" },
+    { name: "Script text is treated as data",   email: "<img src=x onerror=alert(1)>", password: "x", expect: "AuthError" },
+    { name: "Valid login succeeds",             email: "ADMIN@bloodbank.test ", password: "Admin@123", expect: "ok" }
+  ];
+  let failed = 0;
+  for (const c of cases) {
+    let result;
+    try { await authenticate(c.email, c.password); result = "ok"; }
+    catch (err) { result = err instanceof AuthError ? "AuthError" : "CRASH: " + err; }
+    const pass = result === c.expect;
+    if (!pass) failed++;
+    console.log((pass ? "PASS  " : "FAIL  ") + c.name + (pass ? "" : "  (got " + result + ")"));
+  }
+  console.log(failed ? failed + " test(s) failed." : "All " + cases.length + " checks passed.");
+  return failed === 0;
+}
+</script>
+</body>
+</html>

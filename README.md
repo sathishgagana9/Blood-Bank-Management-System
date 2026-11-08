@@ -1,106 +1,65 @@
 # Blood Bank Management System
 
-A mini-project focused on organizing blood bank information and
-supporting the management of blood availability, donors, and blood
-requests.
+A mini-project (Django + SQLite) that organizes blood-bank information: donors, donations, blood inventory, blood requests, notifications, reports and administration.
 
-## Project Overview
+## Project status: Sprint 1 + Sprint 2 implemented
 
-The Blood Bank Management System is intended to make blood-bank-related
-information easier to manage and access. This repository contains
-project documentation covering functional requirements, non-functional
-requirements, security requirements, and test cases.
+All 34 user stories (US-01 to US-34) are implemented, connected and tested. See **[docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md)**
+for the story-by-story and FR-by-FR status (use it to show how much is done).
 
-> **Note:** This repository currently contains project documentation.
-> Add application implementation details and setup instructions when the
-> source code and technology stack are available.
+## Run it (3 minutes)
 
-## Objectives
+```
+cd code
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py seed_demo         # demo users, blood banks, donors, stock, a request
+python manage.py runserver         # open http://127.0.0.1:8000/
+python manage.py test              # 11 automated tests
+```
 
--   Organize blood-bank information in a structured way.
--   Support the management of donor and blood-stock information.
--   Help track blood requests and availability.
--   Define functional, quality, and security expectations before
-    implementation.
--   Use test cases to plan and verify system behavior.
+Demo logins (created by `seed_demo`):
+
+| Role | Username | Password |
+|---|---|---|
+| Administrator | `admin` | `Admin@12345` |
+| Blood bank staff | `staff1` | `Staff@12345` |
+| Donor (has a donor record) | `donor1` | `Donor@12345` |
+| Requester / hospital | `hospital1` | `Hosp@12345` |
+
+You can log in with either the username or the e-mail address.
+
+## Project structure
+
+```
+Blood-Bank-Management-System/
+├── README.md, FR and NFR.pdf, SRS Table *.pdf, Test cases.pdf, ...   (project documentation)
+├── docs/IMPLEMENTATION_STATUS.md                                       (what is done, mapped to stories and FRs)
+└── code/
+    ├── manage.py, settings.py, requirements.txt
+    ├── core/                    one file per user story: usNN_name.py = form + view + GUI page + URL
+    │   ├── models.py            ALL shared tables (single source of truth for every story)
+    │   ├── common.py            page layout, menu, form rendering, home page
+    │   ├── urls.py              registers every story's URLs
+    │   ├── us01 ... us34        Sprint 1 and Sprint 2 stories
+    │   └── management/commands/seed_demo.py
+    └── _original_submissions/   the team's earlier standalone files, kept untouched for reference (not used by the app)
+```
+
+Why the earlier files did not connect: every contributor used different model and field names (for example `date` vs `donation_date`, a text `blood_bank` vs a `BloodBank` table, quantity in ml vs units),
+and there was no settings file, root URL file or `manage.py`. Now there is one shared `models.py`, one layout, and one URL registry. Inventory quantity is stored in **units** everywhere.
 
 ## Documentation
 
-  --------------------------------------------------------------------------------------------------
-  Document                                                       Description
-  -------------------------------------------------------------- -----------------------------------
-  [FR and NFR](FR%20and%20NFR.pdf)                               Combined functional and
-                                                                 non-functional requirements
-
-  [Functional Requirements -- SRS                                Functional requirements listed in
-  Table](SRS%20Table%20-%20Functional%20Req%20-%20SRS.pdf)       SRS table format
-
-  [Non-Functional Requirements -- SRS                            Non-functional requirements listed
-  Table](SRS%20Table%20-%20Non-Functional%20Req%20-%20SRS.pdf)   in SRS table format
-
-  [Security Requirements](Blood_Bank_Security_Requirements.docx) Security requirements for
-                                                                 authentication, authorization,
-                                                                 privacy, and data protection
-
-  [Test Cases](Test%20cases.pdf)                                 Test cases for validating expected
-                                                                 system behavior
-  --------------------------------------------------------------------------------------------------
-
-## Security Considerations
-
-Security requirements should be considered throughout design and
-implementation, including:
-
--   Authentication and role-based access control.
--   Protection of donor and recipient personal information.
--   Validation of user input and prevention of unauthorized data
-    changes.
--   Secure handling of passwords, credentials, and application secrets.
--   Appropriate error handling, backups, and security testing.
-
-These are project requirements and recommendations; their presence in
-this README does not imply that every control has already been
-implemented.
-
-## Backlog and Sprint Planning
-
-Use GitHub Issues to create backlog items based on the functional,
-non-functional, and security requirements. For each backlog item:
-
-1.  Write a clear title and description.
-2.  Add acceptance criteria.
-3.  Assign story points.
-4.  Assign the item to a team member.
-5.  Add it to the relevant GitHub Project and sprint.
-
-Plan the two sprints according to the schedule provided by the course
-instructor. Update this section with the actual sprint dates and
-outcomes once they are confirmed.
-
-## Testing
-
-Refer to [Test cases.pdf](Test%20cases.pdf) for the project's documented
-test cases. Record test execution results, defects, and fixes as
-implementation and testing progress.
-
-## Repository Structure
-
-``` text
-Blood-Bank-Management-System/
-├── FR and NFR.pdf
-├── SRS Table - Functional Req - SRS.pdf
-├── SRS Table - Non-Functional Req - SRS.pdf
-├── Blood_Bank_Security_Requirements.docx
-├── Test cases.pdf
-└── README.md
-```
+| Document | Description |
+|---|---|
+| [FR and NFR](FR%20and%20NFR.pdf) | Combined functional and non-functional requirements |
+| [Functional Requirements - SRS Table](SRS%20Table%20-%20Functional%20Req%20-%20SRS.pdf) | Functional requirements in SRS table format |
+| [Non-Functional Requirements - SRS Table](SRS%20Table%20-%20Non-Functional%20Req%20-%20SRS.pdf) | Non-functional requirements in SRS table format |
+| [Security Requirements](Blood_Bank_Security_Requirements.docx) | Authentication, authorization, privacy and data protection requirements |
+| [Test Cases](Test%20cases.pdf) | 160 planned test cases (16 FRs x 10) |
+| [Implementation status](docs/IMPLEMENTATION_STATUS.md) | Implemented stories, FR coverage, known gaps |
 
 ## Contributors
 
-Add the names of all project team members and their responsibilities
-here.
-
-## Project Status
-
-Documentation and requirements planning. Update this section as
-development, backlog refinement, sprint execution, and testing progress.
+Add the names of all project team members and their responsibilities here.
