@@ -1,0 +1,69 @@
+Name                                       Stmts   Miss Branch BrPart  Cover   Missing
+--------------------------------------------------------------------------------------
+apps.py                                        4      4      0      0     0%   1-6
+auth_backends.py                              16     16      6      0     0%   2-20
+core/__init__.py                               0      0      0      0   100%
+core/admin.py                                  4      0      2      0   100%
+core/apps.py                                   6      0      0      0   100%
+core/auth_backends.py                         16      1      6      1    91%   14
+core/common.py                                16      0      2      0   100%
+core/management/__init__.py                    0      0      0      0   100%
+core/models.py                               171      0     14      0   100%
+core/urls.py                                   7      0      2      0   100%
+core/us01_register_user.py                    54      0     14      0   100%
+core/us02_login.py                            26      0     10      0   100%
+core/us03_invalid_login_error.py              29      0      6      0   100%
+core/us04_user_roles.py                       49      0     12      0   100%
+core/us05_register_donor.py                   47      0     12      0   100%
+core/us06_view_donor.py                       15      0      0      0   100%
+core/us07_update_donor.py                     18      0      2      0   100%
+core/us08_search_donor.py                     27      0      8      0   100%
+core/us09_view_donation_history.py            23      0      8      0   100%
+core/us10_update_personal_information.py      34      0      6      0   100%
+core/us11_record_blood_donation.py            47      0      8      0   100%
+core/us12_view_donation_records.py            30      0     12      0   100%
+core/us13_update_donation_status.py           30      0      2      0   100%
+core/us14_view_blood_inventory.py             26      0      8      0   100%
+core/us15_update_blood_inventory.py           41      0      4      0   100%
+core/us16_automatic_inventory_update.py        5      0      0      0   100%
+core/us17_search_blood_availability.py        28      0     10      0   100%
+core/us18_submit_blood_request.py             39      0      6      0   100%
+core/us19_view_blood_requests.py              29      0     12      0   100%
+core/us20_accept_blood_request.py             24      0      6      0   100%
+core/us21_reject_blood_request.py             29      0      4      0   100%
+core/us22_fulfill_blood_request.py            28      0      4      0   100%
+core/us23_low_stock_alert.py                  17      0      2      0   100%
+core/us24_new_request_notification.py         20      0      2      0   100%
+core/us25_request_status_notification.py       9      0      4      0   100%
+core/us26_availability_notification.py        51      0     14      0   100%
+core/us27_manage_blood_banks.py               46      0      6      0   100%
+core/us28_manage_users.py                     63      0     12      0   100%
+core/us29_assign_roles.py                     40      0     14      0   100%
+core/us30_view_overall_inventory.py           26      0      4      0   100%
+core/us31_generate_reports.py                 90      0     36      0   100%
+core/us32_search_and_filter_records.py        78      0     44      0   100%
+core/us33_view_system_activities.py           59      0     18      0   100%
+core/us34_blood_component_tracking.py         16      0      0      0   100%
+urls.py                                        6      6      2      0     0%   1-45
+us05_register_donor.py                        47     47     12      0     0%   5-77
+us14_view_blood_inventory.py                  26     26      8      0     0%   5-57
+us16_automatic_inventory_update.py             5      5      0      0     0%   8-21
+us18_submit_blood_request.py                  57     57     12      0     0%   7-149
+us19_view_blood_requests.py                   29     29     12      0     0%   6-67
+us20_accept_blood_request.py                  24     24      6      0     0%   7-39
+us21_reject_blood_request.py                  46     46     12      0     0%   6-157
+us22_fulfill_blood_request.py                 28     28      4      0     0%   6-40
+us23_low_stock_alert.py                       17     17      2      0     0%   7-51
+us24_new_request_notification.py              20     20      2      0     0%   6-50
+us25_request_status_notification.py            9      9      4      0     0%   6-17
+us26_availability_notification.py             53     53     12      0     0%   7-175
+us27_manage_blood_banks.py                    46     46      6      0     0%   6-84
+us28_manage_users.py                          63     63     12      0     0%   7-110
+us29_assign_roles.py                          40     40     14      0     0%   7-69
+us30_view_overall_inventory.py                33     33     10      0     0%   7-167
+us31_generate_reports.py                      90     90     36      0     0%   6-144
+us32_search_and_filter_records.py             78     78     44      0     0%   6-119
+us33_view_system_activities.py                59     59     18      0     0%   7-105
+us34_blood_component_tracking.py              16     16      0      0     0%   6-51
+--------------------------------------------------------------------------------------
+TOTAL                                       2225    813    570      1    63%

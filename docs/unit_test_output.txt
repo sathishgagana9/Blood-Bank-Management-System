@@ -1,5 +1,5 @@
 Creating test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...
-Found 189 test(s).
+Found 201 test(s).
 Operations to perform:
   Synchronize unmigrated apps: messages, staticfiles
   Apply all migrations: admin, auth, contenttypes, core, sessions
@@ -25,7 +25,10 @@ Running migrations:
   Applying admin.0001_initial... OK
   Applying admin.0002_logentry_remove_auto_add... OK
   Applying admin.0003_logentry_add_action_flag_choices... OK
-  Applying sessions.0001_initial...test_account_locks_on_fifth_failure (core.test_auth_rbac.LockoutTests.test_account_locks_on_fifth_failure) ... ok
+  Applying sessions.0001_initial...test_auth_rbac (unittest.loader._FailedTest.test_auth_rbac) ... ERROR
+test_donors_donations (unittest.loader._FailedTest.test_donors_donations) ... ERROR
+test_support (unittest.loader._FailedTest.test_support) ... ERROR
+test_account_locks_on_fifth_failure (core.test_auth_rbac.LockoutTests.test_account_locks_on_fifth_failure) ... ok
 test_failures_by_username_and_by_email_count_together (core.test_auth_rbac.LockoutTests.test_failures_by_username_and_by_email_count_together)
 KNOWN DEFECT: the counter is per typed identifier, so alternating username/e-mail avoids the lock. ... expected failure
 test_is_locked_handles_blank_and_email_identifiers (core.test_auth_rbac.LockoutTests.test_is_locked_handles_blank_and_email_identifiers) ... ok
@@ -115,6 +118,15 @@ test_assign_role_url_ignores_get (core.test_gaps.RemainingBranchTests.test_assig
 test_donor_form_save_without_commit (core.test_gaps.RemainingBranchTests.test_donor_form_save_without_commit) ... ok
 test_profile_update_for_user_without_donor_record (core.test_gaps.RemainingBranchTests.test_profile_update_for_user_without_donor_record) ... ok
 test_register_form_save_without_commit (core.test_gaps.RemainingBranchTests.test_register_form_save_without_commit) ... ok
+test_dump_and_restore_round_trip (core.test_nfr.BackupRestoreTests.test_dump_and_restore_round_trip) ... ok
+test_database_refuses_negative_stock (core.test_nfr.DataIntegrityTests.test_database_refuses_negative_stock) ... ok
+test_donor_with_donations_cannot_be_deleted (core.test_nfr.DataIntegrityTests.test_donor_with_donations_cannot_be_deleted) ... ok
+test_duplicate_donation_id_rejected (core.test_nfr.DataIntegrityTests.test_duplicate_donation_id_rejected) ... ok
+test_duplicate_donor_id_rejected (core.test_nfr.DataIntegrityTests.test_duplicate_donor_id_rejected) ... ok
+test_duplicate_inventory_row_rejected (core.test_nfr.DataIntegrityTests.test_duplicate_inventory_row_rejected) ... ok
+test_filtered_search_under_two_seconds (core.test_nfr.PerformanceTests.test_filtered_search_under_two_seconds) ... ok
+test_search_by_group_under_two_seconds (core.test_nfr.PerformanceTests.test_search_by_group_under_two_seconds) ... ok
+test_unfiltered_search_under_two_seconds (core.test_nfr.PerformanceTests.test_unfiltered_search_under_two_seconds) ... ok
 test_filters (core.test_requests_admin.ActivityLogTests.test_filters) ... ok
 test_paging (core.test_requests_admin.ActivityLogTests.test_paging) ... ok
 test_signals_record_important_events (core.test_requests_admin.ActivityLogTests.test_signals_record_important_events) ... ok
@@ -221,10 +233,62 @@ test_us15_update_inventory_and_no_negative (core.tests.Sprint2Flow.test_us15_upd
 test_us20_cannot_accept_without_stock_and_us21_reject (core.tests.Sprint2Flow.test_us20_cannot_accept_without_stock_and_us21_reject) ... ok
 test_us26_availability_notification (core.tests.Sprint2Flow.test_us26_availability_notification) ... ok
 
+======================================================================
+ERROR: test_auth_rbac (unittest.loader._FailedTest.test_auth_rbac)
 ----------------------------------------------------------------------
-Ran 189 tests in 20.178s
+ImportError: Failed to import test module: test_auth_rbac
+Traceback (most recent call last):
+  File "/opt/anaconda3/lib/python3.12/unittest/loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/unittest/loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "/Users/manojkumar/Downloads/Blood-Bank-Management-System/code/test_auth_rbac.py", line 9, in <module>
+    from .models import ActivityLog, BloodBank, User
+ImportError: attempted relative import with no known parent package
 
-OK (expected failures=4)
+
+======================================================================
+ERROR: test_donors_donations (unittest.loader._FailedTest.test_donors_donations)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_donors_donations
+Traceback (most recent call last):
+  File "/opt/anaconda3/lib/python3.12/unittest/loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/unittest/loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "/Users/manojkumar/Downloads/Blood-Bank-Management-System/code/test_donors_donations.py", line 8, in <module>
+    from .models import ActivityLog, BloodInventory, Donation, Donor, User
+ImportError: attempted relative import with no known parent package
+
+
+======================================================================
+ERROR: test_support (unittest.loader._FailedTest.test_support)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_support
+Traceback (most recent call last):
+  File "/opt/anaconda3/lib/python3.12/unittest/loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/unittest/loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "/Users/manojkumar/Downloads/Blood-Bank-Management-System/code/test_support.py", line 9, in <module>
+    from . import us33_view_system_activities  # noqa: F401
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ImportError: attempted relative import with no known parent package
+
+
+----------------------------------------------------------------------
+Ran 201 tests in 21.511s
+
+FAILED (errors=3, expected failures=4)
 Destroying test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...
  OK
 System check identified no issues (0 silenced).
+
+[NFR-01] search {'blood_group': 'O+', 'location': 'City 3', 'min_quantity': 5}: 0.004s
+
+[NFR-01] search {'blood_group': 'A+'}: 0.017s
+
+[NFR-01] search (no filters): 0.130s
