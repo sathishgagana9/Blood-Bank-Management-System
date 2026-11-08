@@ -1,0 +1,230 @@
+Creating test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...
+Found 189 test(s).
+Operations to perform:
+  Synchronize unmigrated apps: messages, staticfiles
+  Apply all migrations: admin, auth, contenttypes, core, sessions
+Synchronizing apps without migrations:
+  Creating tables...
+    Running deferred SQL...
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0001_initial... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying auth.0007_alter_validators_add_error_messages... OK
+  Applying auth.0008_alter_user_username_max_length... OK
+  Applying auth.0009_alter_user_last_name_max_length... OK
+  Applying auth.0010_alter_group_name_max_length... OK
+  Applying auth.0011_update_proxy_permissions... OK
+  Applying auth.0012_alter_user_first_name_max_length... OK
+  Applying core.0001_initial... OK
+  Applying admin.0001_initial... OK
+  Applying admin.0002_logentry_remove_auto_add... OK
+  Applying admin.0003_logentry_add_action_flag_choices... OK
+  Applying sessions.0001_initial...test_account_locks_on_fifth_failure (core.test_auth_rbac.LockoutTests.test_account_locks_on_fifth_failure) ... ok
+test_failures_by_username_and_by_email_count_together (core.test_auth_rbac.LockoutTests.test_failures_by_username_and_by_email_count_together)
+KNOWN DEFECT: the counter is per typed identifier, so alternating username/e-mail avoids the lock. ... expected failure
+test_is_locked_handles_blank_and_email_identifiers (core.test_auth_rbac.LockoutTests.test_is_locked_handles_blank_and_email_identifiers) ... ok
+test_lock_expires_after_fifteen_minutes (core.test_auth_rbac.LockoutTests.test_lock_expires_after_fifteen_minutes) ... ok
+test_successful_login_resets_the_counter (core.test_auth_rbac.LockoutTests.test_successful_login_resets_the_counter) ... ok
+test_empty_fields_rejected (core.test_auth_rbac.LoginTests.test_empty_fields_rejected) ... ok
+test_failed_login_is_logged (core.test_auth_rbac.LoginTests.test_failed_login_is_logged) ... ok
+test_inactive_account_cannot_log_in (core.test_auth_rbac.LoginTests.test_inactive_account_cannot_log_in) ... ok
+test_login_page_redirects_when_already_logged_in (core.test_auth_rbac.LoginTests.test_login_page_redirects_when_already_logged_in) ... ok
+test_logout_requires_post (core.test_auth_rbac.LoginTests.test_logout_requires_post) ... ok
+test_next_parameter_only_allows_local_paths (core.test_auth_rbac.LoginTests.test_next_parameter_only_allows_local_paths) ... ok
+test_sql_injection_in_login_is_just_a_failed_login (core.test_auth_rbac.LoginTests.test_sql_injection_in_login_is_just_a_failed_login) ... ok
+test_two_sessions_are_independent (core.test_auth_rbac.LoginTests.test_two_sessions_are_independent) ... ok
+test_unknown_user_gets_same_message (core.test_auth_rbac.LoginTests.test_unknown_user_gets_same_message) ... ok
+test_valid_login_by_username (core.test_auth_rbac.LoginTests.test_valid_login_by_username) ... ok
+test_wrong_password_shows_single_generic_message (core.test_auth_rbac.LoginTests.test_wrong_password_shows_single_generic_message) ... ok
+test_cannot_self_assign_a_higher_role (core.test_auth_rbac.RegistrationTests.test_cannot_self_assign_a_higher_role) ... ok
+test_duplicate_email_rejected_case_insensitive (core.test_auth_rbac.RegistrationTests.test_duplicate_email_rejected_case_insensitive) ... ok
+test_duplicate_phone_rejected (core.test_auth_rbac.RegistrationTests.test_duplicate_phone_rejected) ... ok
+test_duplicate_username_rejected (core.test_auth_rbac.RegistrationTests.test_duplicate_username_rejected) ... ok
+test_each_required_field_is_mandatory (core.test_auth_rbac.RegistrationTests.test_each_required_field_is_mandatory) ... ok
+test_invalid_email_rejected (core.test_auth_rbac.RegistrationTests.test_invalid_email_rejected) ... ok
+test_invalid_phone_rejected (core.test_auth_rbac.RegistrationTests.test_invalid_phone_rejected) ... ok
+test_logged_in_user_is_redirected_away (core.test_auth_rbac.RegistrationTests.test_logged_in_user_is_redirected_away) ... ok
+test_overlong_name_rejected (core.test_auth_rbac.RegistrationTests.test_overlong_name_rejected) ... ok
+test_special_characters_or_digits_in_name_rejected (core.test_auth_rbac.RegistrationTests.test_special_characters_or_digits_in_name_rejected) ... ok
+test_sql_text_in_free_text_field_is_stored_harmlessly (core.test_auth_rbac.RegistrationTests.test_sql_text_in_free_text_field_is_stored_harmlessly) ... ok
+test_valid_registration_creates_donor_account (core.test_auth_rbac.RegistrationTests.test_valid_registration_creates_donor_account) ... ok
+test_weak_or_mismatched_password_rejected (core.test_auth_rbac.RegistrationTests.test_weak_or_mismatched_password_rejected) ... ok
+test_admin_permissions (core.test_auth_rbac.RolePermissionMatrixTests.test_admin_permissions) ... ok
+test_anonymous_is_sent_to_login_everywhere (core.test_auth_rbac.RolePermissionMatrixTests.test_anonymous_is_sent_to_login_everywhere) ... ok
+test_donor_permissions (core.test_auth_rbac.RolePermissionMatrixTests.test_donor_permissions) ... ok
+test_object_level_urls_are_protected (core.test_auth_rbac.RolePermissionMatrixTests.test_object_level_urls_are_protected) ... ok
+test_staff_permissions (core.test_auth_rbac.RolePermissionMatrixTests.test_staff_permissions) ... ok
+test_admin_can_promote_donor_to_staff (core.test_auth_rbac.UserRolePageTests.test_admin_can_promote_donor_to_staff) ... ok
+test_admin_cannot_change_own_role (core.test_auth_rbac.UserRolePageTests.test_admin_cannot_change_own_role) ... ok
+test_get_request_changes_nothing (core.test_auth_rbac.UserRolePageTests.test_get_request_changes_nothing) ... ok
+test_invalid_role_value_is_ignored (core.test_auth_rbac.UserRolePageTests.test_invalid_role_value_is_ignored) ... ok
+test_role_change_takes_effect_immediately (core.test_auth_rbac.UserRolePageTests.test_role_change_takes_effect_immediately) ... ok
+test_superuser_is_always_administrator (core.test_auth_rbac.UserRolePageTests.test_superuser_is_always_administrator) ... ok
+test_user_properties (core.test_auth_rbac.UserRolePageTests.test_user_properties) ... ok
+test_filters (core.test_donors_donations.DonationRecordsTests.test_filters) ... ok
+test_lists_everything_without_filters (core.test_donors_donations.DonationRecordsTests.test_lists_everything_without_filters) ... ok
+test_no_match_message (core.test_donors_donations.DonationRecordsTests.test_no_match_message) ... ok
+test_donor_cannot_see_someone_elses_history (core.test_donors_donations.HistoryAndProfileTests.test_donor_cannot_see_someone_elses_history) ... ok
+test_donor_sees_own_history (core.test_donors_donations.HistoryAndProfileTests.test_donor_sees_own_history) ... ok
+test_donor_without_record_is_redirected_home (core.test_donors_donations.HistoryAndProfileTests.test_donor_without_record_is_redirected_home) ... ok
+test_profile_update_rejects_missing_or_duplicate_data (core.test_donors_donations.HistoryAndProfileTests.test_profile_update_rejects_missing_or_duplicate_data) ... ok
+test_profile_update_syncs_donor_record (core.test_donors_donations.HistoryAndProfileTests.test_profile_update_syncs_donor_record) ... ok
+test_staff_views_any_history_or_is_sent_to_list (core.test_donors_donations.HistoryAndProfileTests.test_staff_views_any_history_or_is_sent_to_list) ... ok
+test_donation_is_logged_with_staff_user (core.test_donors_donations.RecordDonationTests.test_donation_is_logged_with_staff_user) ... ok
+test_donor_role_cannot_record (core.test_donors_donations.RecordDonationTests.test_donor_role_cannot_record) ... ok
+test_inactive_bank_cannot_be_selected (core.test_donors_donations.RecordDonationTests.test_inactive_bank_cannot_be_selected) ... ok
+test_invalid_donations_are_rejected (core.test_donors_donations.RecordDonationTests.test_invalid_donations_are_rejected) ... ok
+test_non_numeric_donor_parameter_does_not_crash (core.test_donors_donations.RecordDonationTests.test_non_numeric_donor_parameter_does_not_crash)
+KNOWN DEFECT (NFR-11): ?donor=abc raises ValueError -> HTTP 500. ... expected failure
+test_pending_donation_does_not_change_inventory (core.test_donors_donations.RecordDonationTests.test_pending_donation_does_not_change_inventory) ... ok
+test_prefill_from_query_string (core.test_donors_donations.RecordDonationTests.test_prefill_from_query_string) ... ok
+test_same_donor_same_day_twice_is_currently_allowed (core.test_donors_donations.RecordDonationTests.test_same_donor_same_day_twice_is_currently_allowed) ... ok
+test_stored_donation_adds_to_inventory (core.test_donors_donations.RecordDonationTests.test_stored_donation_adds_to_inventory) ... ok
+test_donor_role_cannot_register (core.test_donors_donations.RegisterDonorTests.test_donor_role_cannot_register) ... ok
+test_duplicate_contact_is_currently_allowed (core.test_donors_donations.RegisterDonorTests.test_duplicate_contact_is_currently_allowed) ... ok
+test_invalid_input_is_rejected (core.test_donors_donations.RegisterDonorTests.test_invalid_input_is_rejected) ... ok
+test_link_to_donor_account (core.test_donors_donations.RegisterDonorTests.test_link_to_donor_account) ... ok
+test_link_validation (core.test_donors_donations.RegisterDonorTests.test_link_validation) ... ok
+test_registration_is_logged (core.test_donors_donations.RegisterDonorTests.test_registration_is_logged) ... ok
+test_registration_log_records_the_staff_member (core.test_donors_donations.RegisterDonorTests.test_registration_log_records_the_staff_member)
+KNOWN DEFECT (NFR-12): DONOR_REGISTERED is written with user=None. ... expected failure
+test_staff_registers_donor_with_generated_id (core.test_donors_donations.RegisterDonorTests.test_staff_registers_donor_with_generated_id) ... ok
+test_two_donors_get_different_ids (core.test_donors_donations.RegisterDonorTests.test_two_donors_get_different_ids) ... ok
+test_invalid_status_and_missing_donation (core.test_donors_donations.UpdateDonationStatusTests.test_invalid_status_and_missing_donation) ... ok
+test_leaving_stored_removes_stock (core.test_donors_donations.UpdateDonationStatusTests.test_leaving_stored_removes_stock) ... ok
+test_moving_to_stored_adds_stock_once (core.test_donors_donations.UpdateDonationStatusTests.test_moving_to_stored_adds_stock_once) ... ok
+test_pending_to_tested_changes_no_stock (core.test_donors_donations.UpdateDonationStatusTests.test_pending_to_tested_changes_no_stock) ... ok
+test_status_change_is_logged (core.test_donors_donations.UpdateDonationStatusTests.test_status_change_is_logged) ... ok
+test_status_change_is_rolled_back_when_stock_is_missing (core.test_donors_donations.UpdateDonationStatusTests.test_status_change_is_rolled_back_when_stock_is_missing) ... ok
+test_empty_inventory_message (core.test_donors_donations.ViewInventoryTests.test_empty_inventory_message) ... ok
+test_filters (core.test_donors_donations.ViewInventoryTests.test_filters) ... ok
+test_staff_and_donor_can_view_totals (core.test_donors_donations.ViewInventoryTests.test_staff_and_donor_can_view_totals) ... ok
+test_empty_list_message_and_404 (core.test_donors_donations.ViewUpdateSearchDonorTests.test_empty_list_message_and_404) ... ok
+test_list_and_detail (core.test_donors_donations.ViewUpdateSearchDonorTests.test_list_and_detail) ... ok
+test_search (core.test_donors_donations.ViewUpdateSearchDonorTests.test_search) ... ok
+test_update_donor (core.test_donors_donations.ViewUpdateSearchDonorTests.test_update_donor) ... ok
+test_update_form_shows_current_link_and_blank_unlinks (core.test_donors_donations.ViewUpdateSearchDonorTests.test_update_form_shows_current_link_and_blank_unlinks) ... ok
+test_update_with_invalid_values_is_not_saved (core.test_donors_donations.ViewUpdateSearchDonorTests.test_update_with_invalid_values_is_not_saved) ... ok
+test_assign_role_url_ignores_get (core.test_gaps.RemainingBranchTests.test_assign_role_url_ignores_get) ... ok
+test_donor_form_save_without_commit (core.test_gaps.RemainingBranchTests.test_donor_form_save_without_commit) ... ok
+test_profile_update_for_user_without_donor_record (core.test_gaps.RemainingBranchTests.test_profile_update_for_user_without_donor_record) ... ok
+test_register_form_save_without_commit (core.test_gaps.RemainingBranchTests.test_register_form_save_without_commit) ... ok
+test_filters (core.test_requests_admin.ActivityLogTests.test_filters) ... ok
+test_paging (core.test_requests_admin.ActivityLogTests.test_paging) ... ok
+test_signals_record_important_events (core.test_requests_admin.ActivityLogTests.test_signals_record_important_events) ... ok
+test_status_change_log_records_who_changed_it (core.test_requests_admin.ActivityLogTests.test_status_change_log_records_who_changed_it)
+KNOWN DEFECT (NFR-12): DONATION_UPDATED is logged against recorded_by, not the staff member who changed it. ... expected failure
+test_assign_role_is_logged (core.test_requests_admin.AssignRolesTests.test_assign_role_is_logged) ... ok
+test_guards (core.test_requests_admin.AssignRolesTests.test_guards) ... ok
+test_last_active_administrator_is_protected (core.test_requests_admin.AssignRolesTests.test_last_active_administrator_is_protected) ... ok
+test_page_shows_summary_and_filter (core.test_requests_admin.AssignRolesTests.test_page_shows_summary_and_filter) ... ok
+test_second_administrator_can_be_demoted (core.test_requests_admin.AssignRolesTests.test_second_administrator_can_be_demoted) ... ok
+test_cancel_own_subscription_only_by_post (core.test_requests_admin.AvailabilitySubscriptionTests.test_cancel_own_subscription_only_by_post) ... ok
+test_cannot_cancel_someone_elses_subscription (core.test_requests_admin.AvailabilitySubscriptionTests.test_cannot_cancel_someone_elses_subscription) ... ok
+test_component_and_bank_filters_are_respected (core.test_requests_admin.AvailabilitySubscriptionTests.test_component_and_bank_filters_are_respected) ... ok
+test_no_message_when_stock_was_already_positive (core.test_requests_admin.AvailabilitySubscriptionTests.test_no_message_when_stock_was_already_positive) ... ok
+test_page_loads_with_prefill (core.test_requests_admin.AvailabilitySubscriptionTests.test_page_loads_with_prefill) ... ok
+test_subscribe_then_notified_once_when_stock_arrives (core.test_requests_admin.AvailabilitySubscriptionTests.test_subscribe_then_notified_once_when_stock_arrives) ... ok
+test_subscribing_when_stock_exists_is_allowed (core.test_requests_admin.AvailabilitySubscriptionTests.test_subscribing_when_stock_exists_is_allowed) ... ok
+test_alert_at_exactly_the_threshold (core.test_requests_admin.LowStockTests.test_alert_at_exactly_the_threshold) ... ok
+test_alert_repeats_on_each_decrease_while_low (core.test_requests_admin.LowStockTests.test_alert_repeats_on_each_decrease_while_low)
+Documents the current behaviour (FR-12 says 'falls below'); change if you decide on 'only once'. ... ok
+test_alert_when_stock_falls_below_threshold (core.test_requests_admin.LowStockTests.test_alert_when_stock_falls_below_threshold) ... ok
+test_inactive_staff_are_not_alerted (core.test_requests_admin.LowStockTests.test_inactive_staff_are_not_alerted) ... ok
+test_no_alert_above_threshold (core.test_requests_admin.LowStockTests.test_no_alert_above_threshold) ... ok
+test_no_alert_when_stock_increases (core.test_requests_admin.LowStockTests.test_no_alert_when_stock_increases) ... ok
+test_page_lists_only_low_items_of_active_banks (core.test_requests_admin.LowStockTests.test_page_lists_only_low_items_of_active_banks) ... ok
+test_threshold_is_configurable (core.test_requests_admin.LowStockTests.test_threshold_is_configurable) ... ok
+test_add_blood_bank (core.test_requests_admin.ManageBloodBanksTests.test_add_blood_bank) ... ok
+test_add_validation (core.test_requests_admin.ManageBloodBanksTests.test_add_validation) ... ok
+test_banks_with_history_are_never_deleted (core.test_requests_admin.ManageBloodBanksTests.test_banks_with_history_are_never_deleted) ... ok
+test_deactivate_and_reactivate (core.test_requests_admin.ManageBloodBanksTests.test_deactivate_and_reactivate) ... ok
+test_edit_blood_bank (core.test_requests_admin.ManageBloodBanksTests.test_edit_blood_bank) ... ok
+test_list_shows_all_banks (core.test_requests_admin.ManageBloodBanksTests.test_list_shows_all_banks) ... ok
+test_admin_cannot_deactivate_self (core.test_requests_admin.ManageUsersTests.test_admin_cannot_deactivate_self) ... ok
+test_create_user_validation (core.test_requests_admin.ManageUsersTests.test_create_user_validation) ... ok
+test_create_user_with_role (core.test_requests_admin.ManageUsersTests.test_create_user_with_role) ... ok
+test_deactivated_user_cannot_log_in_until_reactivated (core.test_requests_admin.ManageUsersTests.test_deactivated_user_cannot_log_in_until_reactivated) ... ok
+test_edit_user (core.test_requests_admin.ManageUsersTests.test_edit_user) ... ok
+test_search (core.test_requests_admin.ManageUsersTests.test_search) ... ok
+test_activity_log_handles_anonymous_user_and_truncates (core.test_requests_admin.ModelBehaviourTests.test_activity_log_handles_anonymous_user_and_truncates) ... ok
+test_adjust_refuses_negative_and_leaves_no_row (core.test_requests_admin.ModelBehaviourTests.test_adjust_refuses_negative_and_leaves_no_row) ... ok
+test_creation_of_donation_cannot_fail_normally_but_is_handled (core.test_requests_admin.ModelBehaviourTests.test_creation_of_donation_cannot_fail_normally_but_is_handled)
+Forces the ValidationError branch of US-11 (otherwise unreachable). ... ok
+test_string_representations (core.test_requests_admin.ModelBehaviourTests.test_string_representations) ... ok
+test_each_user_sees_only_own_notifications (core.test_requests_admin.NotificationInboxTests.test_each_user_sees_only_own_notifications) ... ok
+test_empty_inbox (core.test_requests_admin.NotificationInboxTests.test_empty_inbox) ... ok
+test_mark_all_read_needs_post (core.test_requests_admin.NotificationInboxTests.test_mark_all_read_needs_post) ... ok
+test_csv_downloads (core.test_requests_admin.ReportTests.test_csv_downloads) ... ok
+test_date_filter_on_donations (core.test_requests_admin.ReportTests.test_date_filter_on_donations) ... ok
+test_download_without_filters_does_not_crash (core.test_requests_admin.ReportTests.test_download_without_filters_does_not_crash) ... ok
+test_empty_report_message (core.test_requests_admin.ReportTests.test_empty_report_message) ... ok
+test_every_report_renders (core.test_requests_admin.ReportTests.test_every_report_renders) ... ok
+test_group_and_bank_filters (core.test_requests_admin.ReportTests.test_group_and_bank_filters) ... ok
+test_invalid_date_range_and_missing_type (core.test_requests_admin.ReportTests.test_invalid_date_range_and_missing_type) ... ok
+test_totals (core.test_requests_admin.ReportTests.test_totals) ... ok
+test_accept_does_not_deduct_stock (core.test_requests_admin.RequestLifecycleTests.test_accept_does_not_deduct_stock) ... ok
+test_accept_only_works_once_and_only_by_post (core.test_requests_admin.RequestLifecycleTests.test_accept_only_works_once_and_only_by_post) ... ok
+test_accepted_request_can_still_be_rejected (core.test_requests_admin.RequestLifecycleTests.test_accepted_request_can_still_be_rejected) ... ok
+test_cannot_accept_when_stock_is_short (core.test_requests_admin.RequestLifecycleTests.test_cannot_accept_when_stock_is_short) ... ok
+test_finished_requests_cannot_be_rejected (core.test_requests_admin.RequestLifecycleTests.test_finished_requests_cannot_be_rejected) ... ok
+test_fulfil_deducts_stock_automatically (core.test_requests_admin.RequestLifecycleTests.test_fulfil_deducts_stock_automatically) ... ok
+test_fulfil_fails_cleanly_if_stock_disappeared (core.test_requests_admin.RequestLifecycleTests.test_fulfil_fails_cleanly_if_stock_disappeared) ... ok
+test_fulfil_requires_acceptance_and_post (core.test_requests_admin.RequestLifecycleTests.test_fulfil_requires_acceptance_and_post) ... ok
+test_fulfilled_request_is_locked_and_never_deducted_twice (core.test_requests_admin.RequestLifecycleTests.test_fulfilled_request_is_locked_and_never_deducted_twice) ... ok
+test_reject_needs_a_reason_and_notifies_with_it (core.test_requests_admin.RequestLifecycleTests.test_reject_needs_a_reason_and_notifies_with_it) ... ok
+test_status_notification_skipped_when_requester_is_gone (core.test_requests_admin.RequestLifecycleTests.test_status_notification_skipped_when_requester_is_gone) ... ok
+test_unknown_request_is_404 (core.test_requests_admin.RequestLifecycleTests.test_unknown_request_is_404) ... ok
+test_anonymous_cannot_search (core.test_requests_admin.SearchAvailabilityTests.test_anonymous_cannot_search) ... ok
+test_empty_result_offers_notification (core.test_requests_admin.SearchAvailabilityTests.test_empty_result_offers_notification) ... ok
+test_filters (core.test_requests_admin.SearchAvailabilityTests.test_filters) ... ok
+test_inactive_banks_and_zero_stock_are_hidden (core.test_requests_admin.SearchAvailabilityTests.test_inactive_banks_and_zero_stock_are_hidden) ... ok
+test_invalid_min_quantity_does_not_crash (core.test_requests_admin.SearchAvailabilityTests.test_invalid_min_quantity_does_not_crash) ... ok
+test_lists_everything_without_filters (core.test_requests_admin.SearchAvailabilityTests.test_lists_everything_without_filters) ... ok
+test_result_shows_contact_details (core.test_requests_admin.SearchAvailabilityTests.test_result_shows_contact_details) ... ok
+test_donation_search (core.test_requests_admin.SearchRecordsTests.test_donation_search) ... ok
+test_donor_search (core.test_requests_admin.SearchRecordsTests.test_donor_search) ... ok
+test_no_match_message (core.test_requests_admin.SearchRecordsTests.test_no_match_message) ... ok
+test_nothing_shown_until_a_search_is_made (core.test_requests_admin.SearchRecordsTests.test_nothing_shown_until_a_search_is_made) ... ok
+test_request_search (core.test_requests_admin.SearchRecordsTests.test_request_search) ... ok
+test_form_is_prefilled_from_search_result (core.test_requests_admin.SubmitRequestTests.test_form_is_prefilled_from_search_result) ... ok
+test_invalid_requests_are_rejected (core.test_requests_admin.SubmitRequestTests.test_invalid_requests_are_rejected) ... ok
+test_past_date_message (core.test_requests_admin.SubmitRequestTests.test_past_date_message) ... ok
+test_request_is_saved_even_when_stock_is_short (core.test_requests_admin.SubmitRequestTests.test_request_is_saved_even_when_stock_is_short) ... ok
+test_staff_and_admin_are_notified_with_urgency (core.test_requests_admin.SubmitRequestTests.test_staff_and_admin_are_notified_with_urgency) ... ok
+test_valid_request (core.test_requests_admin.SubmitRequestTests.test_valid_request) ... ok
+test_add_remove_set (core.test_requests_admin.UpdateInventoryTests.test_add_remove_set) ... ok
+test_cannot_remove_more_than_available (core.test_requests_admin.UpdateInventoryTests.test_cannot_remove_more_than_available) ... ok
+test_change_is_logged_with_reason_and_user (core.test_requests_admin.UpdateInventoryTests.test_change_is_logged_with_reason_and_user) ... ok
+test_inactive_bank_cannot_be_updated (core.test_requests_admin.UpdateInventoryTests.test_inactive_bank_cannot_be_updated) ... ok
+test_remove_from_empty_row_creates_nothing (core.test_requests_admin.UpdateInventoryTests.test_remove_from_empty_row_creates_nothing) ... ok
+test_validation (core.test_requests_admin.UpdateInventoryTests.test_validation) ... ok
+test_donor_sees_only_own_requests (core.test_requests_admin.ViewRequestsTests.test_donor_sees_only_own_requests) ... ok
+test_empty_message (core.test_requests_admin.ViewRequestsTests.test_empty_message) ... ok
+test_rejection_reason_is_shown_to_requester (core.test_requests_admin.ViewRequestsTests.test_rejection_reason_is_shown_to_requester) ... ok
+test_staff_sees_all_and_can_filter (core.test_requests_admin.ViewRequestsTests.test_staff_sees_all_and_can_filter) ... ok
+test_fr01_registration_validation (core.tests.SharedRequirementChecks.test_fr01_registration_validation) ... ok
+test_fr02_lockout_after_five_failed_attempts (core.tests.SharedRequirementChecks.test_fr02_lockout_after_five_failed_attempts) ... ok
+test_fr02_login_with_email_and_us03_error (core.tests.SharedRequirementChecks.test_fr02_login_with_email_and_us03_error) ... ok
+test_fr09_search_by_required_quantity (core.tests.SharedRequirementChecks.test_fr09_search_by_required_quantity) ... ok
+test_admin_stories (core.tests.Sprint2Flow.test_admin_stories) ... ok
+test_all_pages_load_for_staff_and_donor (core.tests.Sprint2Flow.test_all_pages_load_for_staff_and_donor) ... ok
+test_request_lifecycle_us18_to_us25 (core.tests.Sprint2Flow.test_request_lifecycle_us18_to_us25) ... ok
+test_role_protection (core.tests.Sprint2Flow.test_role_protection) ... ok
+test_us15_update_inventory_and_no_negative (core.tests.Sprint2Flow.test_us15_update_inventory_and_no_negative) ... ok
+test_us20_cannot_accept_without_stock_and_us21_reject (core.tests.Sprint2Flow.test_us20_cannot_accept_without_stock_and_us21_reject) ... ok
+test_us26_availability_notification (core.tests.Sprint2Flow.test_us26_availability_notification) ... ok
+
+----------------------------------------------------------------------
+Ran 189 tests in 20.178s
+
+OK (expected failures=4)
+Destroying test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...
+ OK
+System check identified no issues (0 silenced).
