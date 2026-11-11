@@ -1,6 +1,6 @@
 [run]
 branch = True
-source = .
+source = core
 omit =
     */migrations/*
     */_original_submissions/*
