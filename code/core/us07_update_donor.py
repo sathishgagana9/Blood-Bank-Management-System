@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import path
 
 from .common import FORM_FIELDS, render_page
-from .models import Donor
+from .models import ActivityLog, Donor
 from .us04_user_roles import STAFF_ROLES, us04_role_required
 from .us05_register_donor import US05DonorForm
 
@@ -28,6 +28,7 @@ def us07_update_donor(request, donor_pk):
     form = US05DonorForm(request.POST or None, instance=donor)
     if request.method == "POST" and form.is_valid():
         form.save()
+        ActivityLog.record(request.user, "DONOR_UPDATED", f"{donor.donor_id} {donor.name}")
         messages.success(request, f"Donor {donor.donor_id} updated.")
         return redirect("us06_view_donor_detail", donor_pk=donor.pk)
     return render_page(request, TEMPLATE, {"form": form, "donor": donor})

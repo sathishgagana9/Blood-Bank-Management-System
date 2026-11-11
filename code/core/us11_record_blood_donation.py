@@ -52,7 +52,8 @@ If no blood bank is listed, add one in the Django admin.</p></div>"""
 @us04_role_required(*STAFF_ROLES)
 def us11_record_blood_donation(request):
     initial = {}
-    donor = Donor.objects.filter(pk=request.GET.get("donor") or 0).first()
+    donor_param = request.GET.get("donor", "")
+    donor = Donor.objects.filter(pk=donor_param).first() if donor_param.isdigit() else None
     if donor:
         initial = {"donor": donor, "blood_group": donor.blood_group}
     form = US11RecordDonationForm(request.POST or None, initial=initial)

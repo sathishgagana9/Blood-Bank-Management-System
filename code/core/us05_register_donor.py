@@ -8,7 +8,7 @@ from django.shortcuts import redirect
 from django.urls import path
 
 from .common import FORM_FIELDS, render_page
-from .models import Donor, User
+from .models import ActivityLog, Donor, User
 from .us04_user_roles import STAFF_ROLES, us04_role_required
 
 
@@ -69,6 +69,7 @@ def us05_register_donor(request):
     form = US05DonorForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         donor = form.save()
+        ActivityLog.record(request.user, "DONOR_REGISTERED", f"{donor.donor_id} {donor.name}")
         messages.success(request, f"Donor registered with ID {donor.donor_id}.")
         return redirect("us06_view_donor_detail", donor_pk=donor.pk)
     return render_page(request, TEMPLATE, {"form": form})

@@ -58,9 +58,8 @@ class RegisterDonorTests(BaseCase):
         self.client.post(self.url, self.donor_payload())
         self.assertTrue(ActivityLog.objects.filter(action="DONOR_REGISTERED").exists())
 
-    @unittest.expectedFailure
     def test_registration_log_records_the_staff_member(self):
-        """KNOWN DEFECT (NFR-12): DONOR_REGISTERED is written with user=None."""
+        """Regression test, defect fixed (NFR-12): DONOR_REGISTERED is written with user=None."""
         self.client.post(self.url, self.donor_payload())
         self.assertEqual(ActivityLog.objects.get(action="DONOR_REGISTERED").user, self.staff)
 
@@ -222,9 +221,8 @@ class RecordDonationTests(BaseCase):
         self.assertEqual(self.client.get(self.url, {"donor": self.donor.pk}).status_code, 200)
         self.assertEqual(self.client.get(self.url, {"donor": 9999}).status_code, 200)
 
-    @unittest.expectedFailure
     def test_non_numeric_donor_parameter_does_not_crash(self):
-        """KNOWN DEFECT (NFR-11): ?donor=abc raises ValueError -> HTTP 500."""
+        """Regression test, defect fixed (NFR-11): ?donor=abc raises ValueError -> HTTP 500."""
         self.client.raise_request_exception = False
         self.assertEqual(self.client.get(self.url, {"donor": "abc"}).status_code, 200)
 

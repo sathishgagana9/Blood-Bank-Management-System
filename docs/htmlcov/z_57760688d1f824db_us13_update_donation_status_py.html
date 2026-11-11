@@ -55,8 +55,8 @@
             </div>
         </aside>
         <h2>
-            <span class="text">30 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">30<span class="text"> run</span></button>
+            <span class="text">31 statements &nbsp;</span>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">31<span class="text"> run</span></button>
             <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">0<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
             <button type="button" class="par run show_par button_toggle_par" value="par" data-shortcut="p" title="Toggle lines partially run">0<span class="text"> partial</span></button>
@@ -67,7 +67,7 @@
             <a id="nextFileLink" class="nav" href="z_57760688d1f824db_us14_view_blood_inventory_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.17.2">coverage.py v7.17.2</a>,
-            created at 2026-11-08 16:21 +0530
+            created at 2026-11-11 13:11 +0530
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -95,7 +95,7 @@
     <p class="run"><span class="n"><a id="t11" href="#t11">11</a></span><span class="t"><span class="key">from</span> <span class="nam">django</span><span class="op">.</span><span class="nam">urls</span> <span class="key">import</span> <span class="nam">path</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t12" href="#t12">12</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t13" href="#t13">13</a></span><span class="t"><span class="key">from</span> <span class="op">.</span><span class="nam">common</span> <span class="key">import</span> <span class="nam">FORM_FIELDS</span><span class="op">,</span> <span class="nam">render_page</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t14" href="#t14">14</a></span><span class="t"><span class="key">from</span> <span class="op">.</span><span class="nam">models</span> <span class="key">import</span> <span class="nam">Donation</span><span class="op">,</span> <span class="nam">apply_donation_inventory_effect</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t14" href="#t14">14</a></span><span class="t"><span class="key">from</span> <span class="op">.</span><span class="nam">models</span> <span class="key">import</span> <span class="nam">ActivityLog</span><span class="op">,</span> <span class="nam">Donation</span><span class="op">,</span> <span class="nam">apply_donation_inventory_effect</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t15" href="#t15">15</a></span><span class="t"><span class="key">from</span> <span class="op">.</span><span class="nam">us04_user_roles</span> <span class="key">import</span> <span class="nam">STAFF_ROLES</span><span class="op">,</span> <span class="nam">us04_role_required</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t16" href="#t16">16</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t17" href="#t17">17</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
@@ -132,14 +132,15 @@
     <p class="run"><span class="n"><a id="t48" href="#t48">48</a></span><span class="t">            <span class="nam">donation</span><span class="op">.</span><span class="nam">status</span> <span class="op">=</span> <span class="nam">old_status</span>  <span class="com"># change was rolled back</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t49" href="#t49">49</a></span><span class="t">            <span class="nam">form</span><span class="op">.</span><span class="nam">add_error</span><span class="op">(</span><span class="key">None</span><span class="op">,</span> <span class="nam">exc</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t50" href="#t50">50</a></span><span class="t">        <span class="key">else</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t51" href="#t51">51</a></span><span class="t">            <span class="nam">messages</span><span class="op">.</span><span class="nam">success</span><span class="op">(</span><span class="nam">request</span><span class="op">,</span> <span class="fst">f&quot;</span><span class="fst">Status of </span><span class="op">{</span><span class="nam">donation</span><span class="op">.</span><span class="nam">donation_id</span><span class="op">}</span><span class="fst"> changed to </span><span class="op">{</span><span class="nam">donation</span><span class="op">.</span><span class="nam">get_status_display</span><span class="op">(</span><span class="op">)</span><span class="op">}</span><span class="fst">.</span><span class="fst">&quot;</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t52" href="#t52">52</a></span><span class="t">            <span class="key">return</span> <span class="nam">redirect</span><span class="op">(</span><span class="str">&quot;us12_view_donation_records&quot;</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t53" href="#t53">53</a></span><span class="t">    <span class="key">return</span> <span class="nam">render_page</span><span class="op">(</span><span class="nam">request</span><span class="op">,</span> <span class="nam">TEMPLATE</span><span class="op">,</span> <span class="op">{</span><span class="str">&quot;form&quot;</span><span class="op">:</span> <span class="nam">form</span><span class="op">,</span> <span class="str">&quot;donation&quot;</span><span class="op">:</span> <span class="nam">donation</span><span class="op">}</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t54" href="#t54">54</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t51" href="#t51">51</a></span><span class="t">            <span class="nam">ActivityLog</span><span class="op">.</span><span class="nam">record</span><span class="op">(</span><span class="nam">request</span><span class="op">.</span><span class="nam">user</span><span class="op">,</span> <span class="str">&quot;DONATION_UPDATED&quot;</span><span class="op">,</span> <span class="fst">f&quot;</span><span class="op">{</span><span class="nam">donation</span><span class="op">.</span><span class="nam">donation_id</span><span class="op">}</span><span class="fst">: </span><span class="op">{</span><span class="nam">old_status</span><span class="op">}</span><span class="fst"> -&gt; </span><span class="op">{</span><span class="nam">donation</span><span class="op">.</span><span class="nam">status</span><span class="op">}</span><span class="fst">&quot;</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t52" href="#t52">52</a></span><span class="t">            <span class="nam">messages</span><span class="op">.</span><span class="nam">success</span><span class="op">(</span><span class="nam">request</span><span class="op">,</span> <span class="fst">f&quot;</span><span class="fst">Status of </span><span class="op">{</span><span class="nam">donation</span><span class="op">.</span><span class="nam">donation_id</span><span class="op">}</span><span class="fst"> changed to </span><span class="op">{</span><span class="nam">donation</span><span class="op">.</span><span class="nam">get_status_display</span><span class="op">(</span><span class="op">)</span><span class="op">}</span><span class="fst">.</span><span class="fst">&quot;</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t53" href="#t53">53</a></span><span class="t">            <span class="key">return</span> <span class="nam">redirect</span><span class="op">(</span><span class="str">&quot;us12_view_donation_records&quot;</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t54" href="#t54">54</a></span><span class="t">    <span class="key">return</span> <span class="nam">render_page</span><span class="op">(</span><span class="nam">request</span><span class="op">,</span> <span class="nam">TEMPLATE</span><span class="op">,</span> <span class="op">{</span><span class="str">&quot;form&quot;</span><span class="op">:</span> <span class="nam">form</span><span class="op">,</span> <span class="str">&quot;donation&quot;</span><span class="op">:</span> <span class="nam">donation</span><span class="op">}</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t55" href="#t55">55</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t56" href="#t56">56</a></span><span class="t"><span class="nam">URLS</span> <span class="op">=</span> <span class="op">[</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run run2"><span class="n"><a id="t57" href="#t57">57</a></span><span class="t">    <span class="nam">path</span><span class="op">(</span><span class="str">&quot;donations/&lt;int:donation_pk&gt;/status/&quot;</span><span class="op">,</span> <span class="nam">us13_update_donation_status</span><span class="op">,</span> <span class="nam">name</span><span class="op">=</span><span class="str">&quot;us13_update_donation_status&quot;</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run run2"><span class="n"><a id="t58" href="#t58">58</a></span><span class="t"><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t56" href="#t56">56</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t57" href="#t57">57</a></span><span class="t"><span class="nam">URLS</span> <span class="op">=</span> <span class="op">[</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t58" href="#t58">58</a></span><span class="t">    <span class="nam">path</span><span class="op">(</span><span class="str">&quot;donations/&lt;int:donation_pk&gt;/status/&quot;</span><span class="op">,</span> <span class="nam">us13_update_donation_status</span><span class="op">,</span> <span class="nam">name</span><span class="op">=</span><span class="str">&quot;us13_update_donation_status&quot;</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t59" href="#t59">59</a></span><span class="t"><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
 </main>
 <footer>
     <div class="content">
@@ -149,7 +150,7 @@
             <a class="nav" href="z_57760688d1f824db_us14_view_blood_inventory_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.17.2">coverage.py v7.17.2</a>,
-            created at 2026-11-08 16:21 +0530
+            created at 2026-11-11 13:11 +0530
         </p>
     </div>
 </footer>

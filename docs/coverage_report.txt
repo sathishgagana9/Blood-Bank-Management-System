@@ -12,17 +12,17 @@ core/models.py                               171      0     14      0   100%
 core/urls.py                                   7      0      2      0   100%
 core/us01_register_user.py                    54      0     14      0   100%
 core/us02_login.py                            26      0     10      0   100%
-core/us03_invalid_login_error.py              29      0      6      0   100%
+core/us03_invalid_login_error.py              34      0      8      0   100%
 core/us04_user_roles.py                       49      0     12      0   100%
-core/us05_register_donor.py                   47      0     12      0   100%
+core/us05_register_donor.py                   48      0     12      0   100%
 core/us06_view_donor.py                       15      0      0      0   100%
-core/us07_update_donor.py                     18      0      2      0   100%
+core/us07_update_donor.py                     19      0      2      0   100%
 core/us08_search_donor.py                     27      0      8      0   100%
 core/us09_view_donation_history.py            23      0      8      0   100%
-core/us10_update_personal_information.py      34      0      6      0   100%
-core/us11_record_blood_donation.py            47      0      8      0   100%
+core/us10_update_personal_information.py      35      0      6      0   100%
+core/us11_record_blood_donation.py            48      0      8      0   100%
 core/us12_view_donation_records.py            30      0     12      0   100%
-core/us13_update_donation_status.py           30      0      2      0   100%
+core/us13_update_donation_status.py           31      0      2      0   100%
 core/us14_view_blood_inventory.py             26      0      8      0   100%
 core/us15_update_blood_inventory.py           41      0      4      0   100%
 core/us16_automatic_inventory_update.py        5      0      0      0   100%
@@ -42,7 +42,7 @@ core/us29_assign_roles.py                     40      0     14      0   100%
 core/us30_view_overall_inventory.py           26      0      4      0   100%
 core/us31_generate_reports.py                 90      0     36      0   100%
 core/us32_search_and_filter_records.py        78      0     44      0   100%
-core/us33_view_system_activities.py           59      0     18      0   100%
+core/us33_view_system_activities.py           51      0     14      0   100%
 core/us34_blood_component_tracking.py         16      0      0      0   100%
 urls.py                                        6      6      2      0     0%   1-45
 us05_register_donor.py                        47     47     12      0     0%   5-77
@@ -66,4 +66,4 @@ us32_search_and_filter_records.py             78     78     44      0     0%   6
 us33_view_system_activities.py                59     59     18      0     0%   7-105
 us34_blood_component_tracking.py              16     16      0      0     0%   6-51
 --------------------------------------------------------------------------------------
-TOTAL                                       2225    813    570      1    63%
+TOTAL                                       2227    813    568      1    63%

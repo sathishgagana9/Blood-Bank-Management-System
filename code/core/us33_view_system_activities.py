@@ -12,7 +12,7 @@ from django.dispatch import receiver
 from django.urls import path
 
 from .common import render_page
-from .models import ActivityLog, Donation, Donor, User
+from .models import ActivityLog, Donation, User
 from .us04_user_roles import ADMIN_ROLES, us04_role_required
 
 
@@ -38,20 +38,12 @@ def _log_user_created(sender, instance, created, **kwargs):
         ActivityLog.record(None, "USER_REGISTERED", f"{instance.username} ({instance.role})")
 
 
-@receiver(post_save, sender=Donor)
-def _log_donor(sender, instance, created, update_fields, **kwargs):
-    if update_fields and "donor_id" in update_fields:  # second save, when DNR-0001 is assigned
-        ActivityLog.record(None, "DONOR_REGISTERED", f"{instance.donor_id} {instance.name}")
-    elif not created:
-        ActivityLog.record(None, "DONOR_UPDATED", f"{instance.donor_id} {instance.name}")
-
-
 @receiver(post_save, sender=Donation)
 def _log_donation(sender, instance, created, update_fields, **kwargs):
-    if created:
-        return  # ID not assigned yet; logged on the second save below
-    action = "DONATION_RECORDED" if update_fields and "donation_id" in update_fields else "DONATION_UPDATED"
-    ActivityLog.record(instance.recorded_by, action, f"{instance.donation_id} {instance.blood_group} x{instance.quantity} status={instance.status}")
+    """Only the creation is logged here (second save, when DON-00001 is assigned).
+    Donor and status changes are logged by their views, which know the logged-in user."""
+    if update_fields and "donation_id" in update_fields:
+        ActivityLog.record(instance.recorded_by, "DONATION_RECORDED", f"{instance.donation_id} {instance.blood_group} x{instance.quantity} status={instance.status}")
 
 
 # ---- Form

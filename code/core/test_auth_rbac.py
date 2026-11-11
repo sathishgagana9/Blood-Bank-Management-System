@@ -208,9 +208,8 @@ class LockoutTests(BaseCase):
             ActivityLog.record(None, "LOGIN_FAILED", "staff1@test.com")
         self.assertTrue(us03_is_locked("staff1@test.com"))
 
-    @unittest.expectedFailure
     def test_failures_by_username_and_by_email_count_together(self):
-        """KNOWN DEFECT: the counter is per typed identifier, so alternating username/e-mail avoids the lock."""
+        """Regression test, defect fixed: the counter is per typed identifier, so alternating username/e-mail avoids the lock."""
         for _ in range(3):
             ActivityLog.record(None, "LOGIN_FAILED", "staff1")
         for _ in range(2):

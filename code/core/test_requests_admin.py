@@ -811,9 +811,8 @@ class ActivityLogTests(BaseCase):
         self.client.post(reverse("us02_logout"))
         self.assertTrue(ActivityLog.objects.filter(action="LOGOUT", details="admin").exists())
 
-    @unittest.expectedFailure
     def test_status_change_log_records_who_changed_it(self):
-        """KNOWN DEFECT (NFR-12): DONATION_UPDATED is logged against recorded_by, not the staff member who changed it."""
+        """Regression test, defect fixed (NFR-12): DONATION_UPDATED is logged against recorded_by, not the staff member who changed it."""
         staff2 = User.objects.create_user("staff2", "staff2@test.com", PASSWORD, role=User.ROLE_STAFF)
         donation = Donation.objects.create(donor=self.make_donor(), blood_group="O+", blood_bank=self.bank, recorded_by=self.staff)
         self.login(staff2)

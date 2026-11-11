@@ -1,5 +1,5 @@
 Creating test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...
-Found 201 test(s).
+Found 204 test(s).
 Operations to perform:
   Synchronize unmigrated apps: messages, staticfiles
   Apply all migrations: admin, auth, contenttypes, core, sessions
@@ -25,12 +25,9 @@ Running migrations:
   Applying admin.0001_initial... OK
   Applying admin.0002_logentry_remove_auto_add... OK
   Applying admin.0003_logentry_add_action_flag_choices... OK
-  Applying sessions.0001_initial...test_auth_rbac (unittest.loader._FailedTest.test_auth_rbac) ... ERROR
-test_donors_donations (unittest.loader._FailedTest.test_donors_donations) ... ERROR
-test_support (unittest.loader._FailedTest.test_support) ... ERROR
-test_account_locks_on_fifth_failure (core.test_auth_rbac.LockoutTests.test_account_locks_on_fifth_failure) ... ok
+  Applying sessions.0001_initial...test_account_locks_on_fifth_failure (core.test_auth_rbac.LockoutTests.test_account_locks_on_fifth_failure) ... ok
 test_failures_by_username_and_by_email_count_together (core.test_auth_rbac.LockoutTests.test_failures_by_username_and_by_email_count_together)
-KNOWN DEFECT: the counter is per typed identifier, so alternating username/e-mail avoids the lock. ... expected failure
+Regression test, defect fixed: the counter is per typed identifier, so alternating username/e-mail avoids the lock. ... ok
 test_is_locked_handles_blank_and_email_identifiers (core.test_auth_rbac.LockoutTests.test_is_locked_handles_blank_and_email_identifiers) ... ok
 test_lock_expires_after_fifteen_minutes (core.test_auth_rbac.LockoutTests.test_lock_expires_after_fifteen_minutes) ... ok
 test_successful_login_resets_the_counter (core.test_auth_rbac.LockoutTests.test_successful_login_resets_the_counter) ... ok
@@ -70,6 +67,12 @@ test_invalid_role_value_is_ignored (core.test_auth_rbac.UserRolePageTests.test_i
 test_role_change_takes_effect_immediately (core.test_auth_rbac.UserRolePageTests.test_role_change_takes_effect_immediately) ... ok
 test_superuser_is_always_administrator (core.test_auth_rbac.UserRolePageTests.test_superuser_is_always_administrator) ... ok
 test_user_properties (core.test_auth_rbac.UserRolePageTests.test_user_properties) ... ok
+test_garbage_values_are_ignored (core.test_defect_fixes.Defect1NonNumericDonorParameter.test_garbage_values_are_ignored) ... ok
+test_register_update_and_profile_edit_record_the_user (core.test_defect_fixes.Defect2DonorAuditHasUser.test_register_update_and_profile_edit_record_the_user) ... ok
+test_mixed_identifiers_trigger_the_lock (core.test_defect_fixes.Defect3LockoutCountsUsernameAndEmailTogether.test_mixed_identifiers_trigger_the_lock) ... ok
+test_other_accounts_are_not_affected (core.test_defect_fixes.Defect3LockoutCountsUsernameAndEmailTogether.test_other_accounts_are_not_affected) ... ok
+test_unknown_identifier_still_counts_per_name (core.test_defect_fixes.Defect3LockoutCountsUsernameAndEmailTogether.test_unknown_identifier_still_counts_per_name) ... ok
+test_log_names_the_staff_member_who_changed_the_status (core.test_defect_fixes.Defect4StatusChangeLogsTheActor.test_log_names_the_staff_member_who_changed_the_status) ... ok
 test_filters (core.test_donors_donations.DonationRecordsTests.test_filters) ... ok
 test_lists_everything_without_filters (core.test_donors_donations.DonationRecordsTests.test_lists_everything_without_filters) ... ok
 test_no_match_message (core.test_donors_donations.DonationRecordsTests.test_no_match_message) ... ok
@@ -84,7 +87,7 @@ test_donor_role_cannot_record (core.test_donors_donations.RecordDonationTests.te
 test_inactive_bank_cannot_be_selected (core.test_donors_donations.RecordDonationTests.test_inactive_bank_cannot_be_selected) ... ok
 test_invalid_donations_are_rejected (core.test_donors_donations.RecordDonationTests.test_invalid_donations_are_rejected) ... ok
 test_non_numeric_donor_parameter_does_not_crash (core.test_donors_donations.RecordDonationTests.test_non_numeric_donor_parameter_does_not_crash)
-KNOWN DEFECT (NFR-11): ?donor=abc raises ValueError -> HTTP 500. ... expected failure
+Regression test, defect fixed (NFR-11): ?donor=abc raises ValueError -> HTTP 500. ... ok
 test_pending_donation_does_not_change_inventory (core.test_donors_donations.RecordDonationTests.test_pending_donation_does_not_change_inventory) ... ok
 test_prefill_from_query_string (core.test_donors_donations.RecordDonationTests.test_prefill_from_query_string) ... ok
 test_same_donor_same_day_twice_is_currently_allowed (core.test_donors_donations.RecordDonationTests.test_same_donor_same_day_twice_is_currently_allowed) ... ok
@@ -96,7 +99,7 @@ test_link_to_donor_account (core.test_donors_donations.RegisterDonorTests.test_l
 test_link_validation (core.test_donors_donations.RegisterDonorTests.test_link_validation) ... ok
 test_registration_is_logged (core.test_donors_donations.RegisterDonorTests.test_registration_is_logged) ... ok
 test_registration_log_records_the_staff_member (core.test_donors_donations.RegisterDonorTests.test_registration_log_records_the_staff_member)
-KNOWN DEFECT (NFR-12): DONOR_REGISTERED is written with user=None. ... expected failure
+Regression test, defect fixed (NFR-12): DONOR_REGISTERED is written with user=None. ... ok
 test_staff_registers_donor_with_generated_id (core.test_donors_donations.RegisterDonorTests.test_staff_registers_donor_with_generated_id) ... ok
 test_two_donors_get_different_ids (core.test_donors_donations.RegisterDonorTests.test_two_donors_get_different_ids) ... ok
 test_invalid_status_and_missing_donation (core.test_donors_donations.UpdateDonationStatusTests.test_invalid_status_and_missing_donation) ... ok
@@ -131,7 +134,7 @@ test_filters (core.test_requests_admin.ActivityLogTests.test_filters) ... ok
 test_paging (core.test_requests_admin.ActivityLogTests.test_paging) ... ok
 test_signals_record_important_events (core.test_requests_admin.ActivityLogTests.test_signals_record_important_events) ... ok
 test_status_change_log_records_who_changed_it (core.test_requests_admin.ActivityLogTests.test_status_change_log_records_who_changed_it)
-KNOWN DEFECT (NFR-12): DONATION_UPDATED is logged against recorded_by, not the staff member who changed it. ... expected failure
+Regression test, defect fixed (NFR-12): DONATION_UPDATED is logged against recorded_by, not the staff member who changed it. ... ok
 test_assign_role_is_logged (core.test_requests_admin.AssignRolesTests.test_assign_role_is_logged) ... ok
 test_guards (core.test_requests_admin.AssignRolesTests.test_guards) ... ok
 test_last_active_administrator_is_protected (core.test_requests_admin.AssignRolesTests.test_last_active_administrator_is_protected) ... ok
@@ -233,62 +236,16 @@ test_us15_update_inventory_and_no_negative (core.tests.Sprint2Flow.test_us15_upd
 test_us20_cannot_accept_without_stock_and_us21_reject (core.tests.Sprint2Flow.test_us20_cannot_accept_without_stock_and_us21_reject) ... ok
 test_us26_availability_notification (core.tests.Sprint2Flow.test_us26_availability_notification) ... ok
 
-======================================================================
-ERROR: test_auth_rbac (unittest.loader._FailedTest.test_auth_rbac)
 ----------------------------------------------------------------------
-ImportError: Failed to import test module: test_auth_rbac
-Traceback (most recent call last):
-  File "/opt/anaconda3/lib/python3.12/unittest/loader.py", line 396, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/anaconda3/lib/python3.12/unittest/loader.py", line 339, in _get_module_from_name
-    __import__(name)
-  File "/Users/manojkumar/Downloads/Blood-Bank-Management-System/code/test_auth_rbac.py", line 9, in <module>
-    from .models import ActivityLog, BloodBank, User
-ImportError: attempted relative import with no known parent package
+Ran 204 tests in 23.282s
 
-
-======================================================================
-ERROR: test_donors_donations (unittest.loader._FailedTest.test_donors_donations)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_donors_donations
-Traceback (most recent call last):
-  File "/opt/anaconda3/lib/python3.12/unittest/loader.py", line 396, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/anaconda3/lib/python3.12/unittest/loader.py", line 339, in _get_module_from_name
-    __import__(name)
-  File "/Users/manojkumar/Downloads/Blood-Bank-Management-System/code/test_donors_donations.py", line 8, in <module>
-    from .models import ActivityLog, BloodInventory, Donation, Donor, User
-ImportError: attempted relative import with no known parent package
-
-
-======================================================================
-ERROR: test_support (unittest.loader._FailedTest.test_support)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_support
-Traceback (most recent call last):
-  File "/opt/anaconda3/lib/python3.12/unittest/loader.py", line 396, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/anaconda3/lib/python3.12/unittest/loader.py", line 339, in _get_module_from_name
-    __import__(name)
-  File "/Users/manojkumar/Downloads/Blood-Bank-Management-System/code/test_support.py", line 9, in <module>
-    from . import us33_view_system_activities  # noqa: F401
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ImportError: attempted relative import with no known parent package
-
-
-----------------------------------------------------------------------
-Ran 201 tests in 21.511s
-
-FAILED (errors=3, expected failures=4)
+OK
 Destroying test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...
  OK
 System check identified no issues (0 silenced).
 
-[NFR-01] search {'blood_group': 'O+', 'location': 'City 3', 'min_quantity': 5}: 0.004s
+[NFR-01] search {'blood_group': 'O+', 'location': 'City 3', 'min_quantity': 5}: 0.005s
 
-[NFR-01] search {'blood_group': 'A+'}: 0.017s
+[NFR-01] search {'blood_group': 'A+'}: 0.018s
 
-[NFR-01] search (no filters): 0.130s
+[NFR-01] search (no filters): 0.133s

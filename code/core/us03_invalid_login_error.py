@@ -17,16 +17,22 @@ US03_LOCKED_MESSAGE = f"Account locked after {MAX_FAILED_ATTEMPTS} failed attemp
 
 
 def us03_is_locked(identifier):
-    """True when `identifier` (username or e-mail) failed to log in 5 times in the last 15 minutes."""
+    """True when the account behind `identifier` (username or e-mail) failed to log in 5 times in the last 15 minutes.
+    Failures typed as the username and as the e-mail address are counted together."""
     if not identifier:
         return False
     since = timezone.now() - timedelta(minutes=LOCKOUT_MINUTES)
     user = User.objects.filter(Q(username__iexact=identifier) | Q(email__iexact=identifier)).first()
-    if user:  # a successful login resets the counter
+    names = {identifier}
+    if user:
+        names |= {user.username, user.email}
         last_ok = ActivityLog.objects.filter(user=user, action="LOGIN").first()
-        if last_ok and last_ok.created_at > since:
+        if last_ok and last_ok.created_at > since:  # a successful login resets the counter
             since = last_ok.created_at
-    failures = ActivityLog.objects.filter(action="LOGIN_FAILED", details__iexact=identifier, created_at__gt=since)
+    matches = Q()
+    for name in filter(None, names):
+        matches |= Q(details__iexact=name)
+    failures = ActivityLog.objects.filter(matches, action="LOGIN_FAILED", created_at__gt=since)
     return failures.count() >= MAX_FAILED_ATTEMPTS
 
 US03_INVALID_LOGIN_MESSAGE = "Invalid username/email or password. Please check your credentials and try again."

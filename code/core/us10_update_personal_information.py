@@ -10,7 +10,7 @@ from django.shortcuts import redirect
 from django.urls import path
 
 from .common import FORM_FIELDS, render_page
-from .models import Donor, User
+from .models import ActivityLog, Donor, User
 
 
 # ---- Form
@@ -48,6 +48,7 @@ def us10_update_personal_information(request):
                 donor.contact = user.phone or donor.contact
                 donor.address = user.address or donor.address
                 donor.save()
+        ActivityLog.record(request.user, "PROFILE_UPDATED", request.user.username)
         messages.success(request, "Your personal information has been updated.")
         return redirect("us10_update_personal_information")
     return render_page(request, TEMPLATE, {"form": form})

@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import path
 
 from .common import FORM_FIELDS, render_page
-from .models import Donation, apply_donation_inventory_effect
+from .models import ActivityLog, Donation, apply_donation_inventory_effect
 from .us04_user_roles import STAFF_ROLES, us04_role_required
 
 
@@ -48,6 +48,7 @@ def us13_update_donation_status(request, donation_pk):
             donation.status = old_status  # change was rolled back
             form.add_error(None, exc)
         else:
+            ActivityLog.record(request.user, "DONATION_UPDATED", f"{donation.donation_id}: {old_status} -> {donation.status}")
             messages.success(request, f"Status of {donation.donation_id} changed to {donation.get_status_display()}.")
             return redirect("us12_view_donation_records")
     return render_page(request, TEMPLATE, {"form": form, "donation": donation})
